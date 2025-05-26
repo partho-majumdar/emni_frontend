@@ -37,8 +37,8 @@ export type MentorInfoType = {
   image_link: string;
 };
 
-//export type StudentPersonalInfoType = z.infer<typeof StudentInfoSchema>;
-//export type MentorPersonalInfoType = z.infer<typeof MentorInfoSchema>;
+// export type StudentPersonalInfoType = z.infer<typeof StudentInfoSchema>;
+// export type MentorPersonalInfoType = z.infer<typeof MentorInfoSchema>;
 
 export type meeting_medium = "online" | "offline";
 
@@ -67,8 +67,8 @@ export type AvalabilityType = {
   id?: string;
   start: Date;
   end: Date;
-  booked: string; // empty means free(not booked) and string means booked and the string should be sessionId
-  medium: string[];
+  booked: boolean | string | string[];
+  medium: ("online" | "offline")[];
 };
 
 export type SessionType =

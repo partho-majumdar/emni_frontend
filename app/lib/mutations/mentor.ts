@@ -7,6 +7,27 @@ import {
 } from "@/app/types";
 import { apiRequest, ApiRequestType } from "../apiClient";
 
+// export async function addAvailability(
+//   start: Date,
+//   end: Date,
+//   medium: ("online" | "offline")[]
+// ) {
+//   const req: ApiRequestType = {
+//     endpoint: "api/mentor/availability/add",
+//     method: "POST",
+//     body: {
+//       startTime: start.toISOString(),
+//       endTime: end.toISOString(),
+//       medium: medium,
+//     },
+//     auth: true,
+//   };
+//   const res = await apiRequest(req);
+//   if (!res.success) {
+//     throw new Error("Adding Avalability Failed.");
+//   }
+// }
+
 export async function addAvailability(
   start: Date,
   end: Date,
@@ -23,9 +44,18 @@ export async function addAvailability(
     auth: true,
   };
   const res = await apiRequest(req);
-  if (!res.success) {
-    throw new Error("Adding Avalability Failed.");
+  if (!res.success || !res.data) {
+    throw new Error("Adding Availability Failed.");
   }
+
+  // Return the full availability object to be used by the caller
+  return {
+    id: res.data.id,
+    start: new Date(res.data.start),
+    end: new Date(res.data.end),
+    booked: res.data.booked,
+    medium: res.data.medium,
+  };
 }
 
 export async function deleteAvailability(availability: AvalabilityType) {
@@ -36,6 +66,30 @@ export async function deleteAvailability(availability: AvalabilityType) {
   };
   const res = await apiRequest(req);
   return res.success;
+}
+
+export async function updateAvailability(availability: AvalabilityType) {
+  const req: ApiRequestType = {
+    endpoint: `api/mentor/availability/${availability.id}`,
+    method: "PUT",
+    body: {
+      startTime: availability.start.toISOString(),
+      endTime: availability.end.toISOString(),
+      medium: availability.medium,
+    },
+    auth: true,
+  };
+  const res = await apiRequest(req);
+  if (!res.success || !res.data) {
+    throw new Error("Updating Availability Failed.");
+  }
+  return {
+    id: res.data.id,
+    start: new Date(res.data.start),
+    end: new Date(res.data.end),
+    booked: res.data.booked,
+    medium: res.data.medium,
+  };
 }
 
 export async function updateInterestListMentor(interests: InterestType[]) {

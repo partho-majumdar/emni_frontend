@@ -78,7 +78,6 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-
 const MySessions = () => {
   const [sessions, setSessions] = React.useState<SessionInfoType[] | null>(null);
   
@@ -91,7 +90,7 @@ const MySessions = () => {
   }, []);
 
   return (
-    <ScrollArea className="h-screen w-screen w-full">
+    <ScrollArea className="h-screen w-full">
       <div className="min-h-screen bg-black p-6">
         {/* Header Section */}
         <div className="flex flex-col space-y-4 mb-4">
@@ -108,7 +107,6 @@ const MySessions = () => {
           
           <div className="border-b border-gray-800 w-full"></div>
         </div>
-        
         
         <div className="space-y-4">
           {sessions && sessions.length === 0 ? (
@@ -135,7 +133,7 @@ const MySessions = () => {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-auto items-start">
               {sessions?.map((session) => (
                 <div 
                   key={session.sessionId} 

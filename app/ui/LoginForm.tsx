@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import LoadingSpinner from "./LoadingComponent";
 import { smooth_hover, theme_style } from "./CustomStyles";
 import Link from "next/link";
+import { toast } from "sonner"; 
 
 type Props = {
   student: boolean;
@@ -24,11 +25,20 @@ type Props = {
 export default function LoginForm({ student }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorText, setErrorText] = useState("");
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
 
   const handleSignIn = () => {
+    // Validate required fields
+    const missingFields: string[] = [];
+    if (!email.trim()) missingFields.push("Email");
+    if (!password.trim()) missingFields.push("Password");
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in the following required fields: ${missingFields.join(", ")}`);
+      return;
+    }
+
     startTransition(async () => {
       setIsPending(true);
       if (student) {
@@ -36,7 +46,7 @@ export default function LoginForm({ student }: Props) {
         const student_id = res.sid;
         localStorage.setItem("student-id", student_id);
         if (res.error && res.error.length > 0) {
-          setErrorText(res.error);
+          toast.error(res.error);
           setIsPending(false);
         } else {
           router.replace("/s/myprofile");
@@ -44,10 +54,9 @@ export default function LoginForm({ student }: Props) {
       } else {
         const res = await mentorSignIn({ email, password });
         const mentor_id = res.mid;
-        console.log("hello", res);
         localStorage.setItem("mentor-id", mentor_id);
         if (res.error && res.error.length > 0) {
-          setErrorText(res.error);
+          toast.error(res.error);
           setIsPending(false);
         } else {
           router.replace("/m/myprofile");
@@ -55,22 +64,22 @@ export default function LoginForm({ student }: Props) {
       }
     });
   };
+
   return (
-    <div className={cn("flex flex-col gap-6")}>
+    <div className={cn("flex flex-col gap-4")}>
       <Card className="border-none">
         <CardHeader>
-          <CardTitle className="text-4xl flex justify-center"></CardTitle>
-          <CardDescription className="flex flex-col items-center justify-center text-lg">
+          <CardTitle className="text-2xl flex justify-center"></CardTitle>
+          <CardDescription className="flex flex-col items-center justify-center text-base">
             Sign in to your account
-            <span className="text-red-400 bg-red-900/40 px-3 rounded-md text-sm ">
-              {errorText}
-            </span>
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+          <div className="flex flex-col gap-4">
+            <div className="grid gap-1">
+              <Label htmlFor="email" className="text-sm">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -78,20 +87,14 @@ export default function LoginForm({ student }: Props) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={cn(
-                  errorText.length > 0 && "text-red-400 bg-red-900/40",
-                )}
+                className="text-sm h-9"
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                {/* <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a> */}
+                <Label htmlFor="password" className="text-sm">
+                  Password
+                </Label>
               </div>
               <Input
                 id="password"
@@ -99,9 +102,7 @@ export default function LoginForm({ student }: Props) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={cn(
-                  errorText.length > 0 && "text-red-400 bg-red-900/40",
-                )}
+                className="text-sm h-9"
               />
             </div>
             {isPending ? (
@@ -110,7 +111,7 @@ export default function LoginForm({ student }: Props) {
               <span
                 className={cn(
                   theme_style,
-                  "hover:opacity-70 cursor-pointer px-4 py-2 rounded-md text-center text-white ",
+                  "hover:opacity-70 cursor-pointer px-3 py-1.5 rounded-md text-center text-sm",
                   smooth_hover,
                 )}
                 onClick={handleSignIn}
@@ -119,23 +120,10 @@ export default function LoginForm({ student }: Props) {
               </span>
             )}
           </div>
-          {/* <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <a
-              href={student ? "/sign-up" : "/sign-up"}
-              className="underline underline-offset-4"
-            >
-              Sign up
-            </a>
-            {isPending && <LoadingSpinner />}
-          </div> */}
 
-          <div className="text-sm text-muted-foreground text-center mt-3">
+          <div className="text-sm text-muted-foreground text-center mt-2">
             Don't have an account?{" "}
-            <Link 
-              href="/sign-up"
-              className="text-orange-500 hover:underline"
-            >
+            <Link href="/sign-up" className="text-orange-500 hover:underline">
               Sign-up
             </Link>
           </div>

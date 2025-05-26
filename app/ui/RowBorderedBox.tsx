@@ -14,7 +14,7 @@ const RowBorderedBox = ({ children }: Props) => {
 
 const RowBorderedBoxRow = ({ children }: Props) => {
   return (
-    <span className="border-t border-orange-500/20 px-4 py-2 text-xl">
+    <span className="border-t border-orange-500/20 px-4 py-2 text-md">
       {children}
     </span>
   );

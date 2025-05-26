@@ -198,9 +198,9 @@ import {
   Dialog,
   DialogContent,
   DialogClose,
-  DialogTrigger,
-  DialogTitle,
   DialogDescription,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import EditSession from "../(mentor)/m/mysessions/(ui)/Edit";
 
@@ -236,7 +236,7 @@ const SessionCard = ({
   };
 
   return (
-    <Card className="w-full max-w-md border border-gray-700 bg-gray-900/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg">
+    <Card className="w-full max-w-md border border-gray-700 bg-gray-900/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg flex flex-col min-h-0">
       <CardHeader className="p-5 pb-0">
         <div className="flex justify-between items-start gap-3">
           <CardTitle className="text-xl font-semibold text-white line-clamp-2">
@@ -306,13 +306,13 @@ const SessionCard = ({
           </div>
         </div>
 
-        <CardDescription className="text-sm text-gray-300 whitespace-pre-line">
+        <CardDescription className="text-sm text-gray-300 whitespace-pre-wrap break-words">
           {sessionDetails.Description}
         </CardDescription>
       </CardContent>
 
       {!student && (
-        <CardFooter className="p-5 pt-0 flex justify-end gap-2">
+        <CardFooter className="flex justify-end gap-2">
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -320,12 +320,13 @@ const SessionCard = ({
                 size="sm"
                 className="text-gray-400 hover:text-white hover:bg-gray-800/30 p-1 text-xs"
               >
-                <Edit className="w-1.5 h-1.5 mr-1" />
+                <Edit className="w-4 h-4 mr-1" />
                 Edit
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogTitle className="text-xl">Edit Session</DialogTitle>
+              <DialogDescription>Update session details below.</DialogDescription>
               <EditSession
                 SessionDetails={sessionDetails}
                 updateSessionDetails={updateSessions}
@@ -338,7 +339,7 @@ const SessionCard = ({
             className="text-red-400/80 hover:text-red-300 hover:bg-red-500/10 p-1 text-xs"
             onClick={handleDeleteSession}
           >
-            <Trash2 className="w-1.5 h-1.5 mr-1" />
+            <Trash2 className="w-4 h-4 mr-1" />
             Delete
           </Button>
         </CardFooter>
@@ -353,7 +354,7 @@ const SessionCard = ({
                   className="bg-orange-500/90 hover:bg-orange-600 text-white px-3 py-1.5 text-sm"
                   size="sm"
                 >
-                  <Calendar className="w-1.5 h-1.5 mr-1" />
+                  <Calendar className="w-4 h-4 mr-1" />
                   Book
                 </Button>
               )}

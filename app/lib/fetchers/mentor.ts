@@ -100,7 +100,19 @@ export async function getAvailabilities() {
     throw new Error("Availability fetching error");
   }
   console.log("recieved availability", res.data);
-  const refined = res.data.map((item) => {
+  interface MentorAvailabilityItem {
+    id: string;
+    start: string;
+    end: string;
+    [key: string]: any;
+  }
+
+  interface RefinedMentorAvailabilityItem extends Omit<MentorAvailabilityItem, 'start' | 'end'> {
+    start: Date;
+    end: Date;
+  }
+
+  const refined: RefinedMentorAvailabilityItem[] = (res.data as MentorAvailabilityItem[]).map((item: MentorAvailabilityItem): RefinedMentorAvailabilityItem => {
     return {
       ...item,
       start: parseISO(item.start),
