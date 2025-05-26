@@ -18,69 +18,102 @@ export async function getEntireInterestsList() {
   return res.data;
 }
 
-/// these functions should be in the inner folders for separate auth
-export async function getGroupSessionsList() {
-  const req: ApiRequestType = {
-    endpoint: "api/groupsessions/",
-    method: "GET",
-    auth: true,
-  };
+const refineGroupSessionData = <T extends GroupSessionInfoType | GroupSessionInfoType[]>(data: T): T => {
+  const refineSingle = (gs: GroupSessionInfoType): GroupSessionInfoType => {
 
-  const res = await apiRequest(req);
-  console.log("group sessions", res);
-  if (!res.success) {
-    throw new Error("Error fetching Group Sessions List");
-  }
-  const data: GroupSessionInfoType[] = res.data;
-  const refined = data.map((gs: GroupSessionInfoType) => {
     return {
       ...gs,
+      // ...gs.status, 
       mentor: {
         ...gs.mentor,
-        photoLink:
-          gs.mentor.photoLink && gs.mentor.photoLink.length > 0
-            ? gs.mentor.photoLink
-            : getAvatar(gs.mentor.id),
+        photoLink: gs.mentor?.photoLink?.length > 0 ? gs.mentor.photoLink : getAvatar(gs.mentor?.id ?? ''),
       },
-      previewParticipants: gs.previewParticipants.map(
-        (p: { id: string; name: string; photoLink: string }) => {
-          return {
-            ...p,
-            photoLink:
-              p.photoLink && p.photoLink.length > 0
-                ? p.photoLink
-                : getAvatar(p.id),
-          };
-        },
-      ),
+      previewParticipants: gs.previewParticipants?.map((p) => ({
+        ...p,
+        photoLink: p.photoLink?.length > 0 ? p.photoLink : getAvatar(p.id ?? ''),
+      })) ?? [],
     };
-  });
-  console.log("refined", refined);
-  return refined;
-}
+  };
 
-export async function getGroupSessionsById(gsid: string) {
+  return Array.isArray(data) ? data.map(refineSingle) as T : refineSingle(data) as T;
+};
+
+export async function getGroupSessionsList(): Promise<GroupSessionInfoType[]> {
   const req: ApiRequestType = {
-    endpoint: `api/groupsessions/${gsid}`,
-    method: "GET",
+    endpoint: 'api/groupsessions/',
+    method: 'GET',
     auth: true,
   };
 
-  const res = await apiRequest(req);
-  if (!res.success) {
-    throw new Error("Error fetching Group Sessions List");
+  try {
+    const res = await apiRequest(req);
+    if (!res.success || !res.data) {
+      throw new Error('Failed to fetch group sessions list');
+    }
+    return refineGroupSessionData(res.data as GroupSessionInfoType[]);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error fetching group sessions list: ${error.message}`);
+    } else {
+      throw new Error('Error fetching group sessions list: Unknown error');
+    }
   }
-  const data: GroupSessionInfoType = {
-    ...res.data,
-    mentor: {
-      ...res.data.mentor,
-      photoLink:
-        res.data.mentor.photoLink && res.data.mentor.photoLink.length > 0
-          ? res.data.mentor.photoLink
-          : getAvatar(res.data.mentor.id),
-    },
+}
+
+export async function getGroupSessionsById(gsid: string): Promise<GroupSessionInfoType> {
+  if (!gsid || typeof gsid !== 'string') {
+    throw new Error('Invalid or missing group session ID');
+  }
+
+  const req: ApiRequestType = {
+    endpoint: `api/groupsessions/${gsid}`,
+    method: 'GET',
+    auth: true,
   };
-  return data;
+
+  try {
+    const res = await apiRequest(req);
+    if (!res.success || !res.data) {
+      throw new Error(`Failed to fetch group session with ID: ${gsid}`);
+    }
+    const data = {
+      ...res.data,
+      startTime: typeof res.data.startTime === 'string' ? new Date(res.data.startTime) : res.data.startTime,
+    };
+    return refineGroupSessionData(data as GroupSessionInfoType);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error fetching group session with ID ${gsid}: ${error.message}`);
+    } else {
+      throw new Error(`Error fetching group session with ID ${gsid}: Unknown error`);
+    }
+  }
+}
+
+export async function getGroupSessionListByMentorId(mID: string): Promise<GroupSessionInfoType[]> {
+  if (!mID || typeof mID !== 'string') {
+    throw new Error('Invalid or missing mentor ID');
+  }
+
+  const req: ApiRequestType = {
+    endpoint: `api/groupsessions/mentor/${mID}`,
+    method: 'GET',
+    auth: true,
+  };
+
+  try {
+    const res = await apiRequest(req);
+    if (!res.success || !res.data) {
+      throw new Error(`Failed to fetch group sessions for mentor ID: ${mID}`);
+    }
+    return refineGroupSessionData(res.data as GroupSessionInfoType[]);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error fetching group sessions for mentor ID ${mID}: ${error.message}`);
+    } else {
+      throw new Error(`Error fetching group sessions for mentor ID ${mID}: Unknown error`);
+    }
+  }
 }
 
 export async function getGroupSessionParticipants(gsid: string) {
@@ -104,45 +137,6 @@ export async function getGroupSessionParticipants(gsid: string) {
       ...p,
       photoLink:
         p.photoLink && p.photoLink.length > 0 ? p.photoLink : getAvatar(p.id),
-    };
-  });
-  return refined;
-}
-
-export async function getGroupSessionListByMentorId(mID: string) {
-  const req: ApiRequestType = {
-    endpoint: `api/groupsessions/mentor/${mID}`,
-    method: "GET",
-    auth: true,
-  };
-
-  const res = await apiRequest(req);
-  console.log(res);
-  if (!res.success) {
-    throw new Error("Error fetching Group Sessions List By Mentor ID");
-  }
-  const data: GroupSessionInfoType[] = res.data;
-  const refined = data.map((gs: GroupSessionInfoType) => {
-    return {
-      ...gs,
-      mentor: {
-        ...gs.mentor,
-        photoLink:
-          gs.mentor.photoLink && gs.mentor.photoLink.length > 0
-            ? gs.mentor.photoLink
-            : getAvatar(gs.mentor.id),
-      },
-      previewParticipants: gs.previewParticipants.map(
-        (p: { id: string; name: string; photoLink: string }) => {
-          return {
-            ...p,
-            photoLink:
-              p.photoLink && p.photoLink.length > 0
-                ? p.photoLink
-                : getAvatar(p.id),
-          };
-        },
-      ),
     };
   });
   return refined;

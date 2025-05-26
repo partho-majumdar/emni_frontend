@@ -88,6 +88,7 @@
 import Sidebar from "@/app/ui/Sidebar";
 import React from "react";
 import {
+  Home,
   Bell,
   Calendar,
   CalendarClock,
@@ -100,6 +101,11 @@ import {
 } from "lucide-react";
 
 const SidebarElements = [
+  {
+    name: "Home",
+    icon: <Home className="w-4 h-4" />, 
+    url: "/s/home",
+  },
   {
     name: "AI Roadmap",
     icon: <TrafficCone className="w-4 h-4" />,
@@ -161,7 +167,6 @@ export default function StudentProfileLayout({
         role="student"
         SidebarElements={SidebarElements}
         SidebarTopNavigationButtons={SidebarTopNavigationButtons}
-        // textSize="text-sm"
       />
       <div className="flex flex-col w-full">
         <div>{children}</div>

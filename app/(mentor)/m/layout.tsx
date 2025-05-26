@@ -98,6 +98,7 @@ import {
   Star,
   Users,
   Workflow,
+  History
 } from "lucide-react";
 
 const SidebarElements = [
@@ -107,7 +108,7 @@ const SidebarElements = [
     url: "/m/home",
   },
   {
-    name: "My Sessions",
+    name: "1:1 Sessions",
     icon: <LayoutGrid className="w-4 h-4" />,
     url: "/m/mysessions",
   },
@@ -135,6 +136,11 @@ const SidebarElements = [
     name: "Jobs",
     icon: <Workflow className="w-4 h-4" />,
     url: "/m/jobs",
+  },
+  {
+    name: "History",
+    icon: <History className="w-4 h-4" />,
+    url: "/m/history",
   },
 ];
 

@@ -72,7 +72,7 @@ export type AvalabilityType = {
 };
 
 export type SessionType =
-  | "Course Topic Tution"
+  | "Course Topic Tuition"
   | "Project Help"
   | "Career Guidance"
   | "Competition Prep"
@@ -138,6 +138,7 @@ export type GroupSessionInfoType = {
     max: number;
   };
   platform_link: string;
+  status: string;
   previewParticipants: { id: string; name: string; photoLink: string }[];
 };
 

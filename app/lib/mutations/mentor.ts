@@ -3,7 +3,7 @@ import {
   InterestType,
   MentorInfoType,
   SessionInfoType,
-  SessionType,
+  GroupSessionInfoType,
 } from "@/app/types";
 import { apiRequest, ApiRequestType } from "../apiClient";
 
@@ -27,6 +27,7 @@ export async function addAvailability(
     throw new Error("Adding Avalability Failed.");
   }
 }
+
 export async function deleteAvailability(availability: AvalabilityType) {
   const req: ApiRequestType = {
     endpoint: `api/mentor/availability/${availability.id}`,
@@ -86,54 +87,6 @@ export async function updateMentorProfile(
   }
 }
 
-// ------------ above code written by rafi ------------------
-
-
-
-
-
-
-
-
-//export async function updateMentorProfile(
-//  data: MentorInfoType,
-//  imageFile: File | null,
-//) {
-//  const formData = new FormData();
-//
-//  formData.append("name", data.name);
-//  formData.append("email", data.email);
-//  formData.append("username", data.username);
-//  formData.append("grad_year", data.grad_year.toString());
-//  formData.append("bio", data.bio);
-//  formData.append("password", data.password);
-//  formData.append("dob", data.dob.toISOString());
-//  formData.append("socials[github]", data.socials.github || "");
-//  formData.append("socials[facebook]", data.socials.facebook || "");
-//  formData.append("socials[linkedin]", data.socials.linkedin || "");
-//  formData.append("socials[twitter]", data.socials.twitter || "");
-//
-//  if (imageFile) {
-//    formData.append("image", imageFile);
-//  }
-//  const req: ApiRequestType = {
-//    endpoint: "api/mentor/myself",
-//    method: "PUT",
-//    body: formData,
-//    auth: true,
-//    contentType: false,
-//  };
-//  console.log(req.body);
-//
-//  const res = await apiRequest(req);
-//  if (res.success) {
-//    console.log("Profile updated successfully");
-//    console.log(res.data);
-//  } else {
-//    console.error("Failed to update profile");
-//  }
-//}
-//
 export async function createSession(sinfo: SessionInfoType) {
   const req: ApiRequestType = {
     endpoint: "api/sessions/new",
@@ -193,5 +146,107 @@ export async function updateSession(sinfo: SessionInfoType) {
   } else {
     console.error("UPDATE SESSION by Mentor>Failed to update session");
     return false;
+  }
+}
+
+export async function createGroupSession(sessionInfo: {
+  title: string;
+  description: string;
+  durationInMinutes: number;
+  startTime: Date;
+  maxParticipant: number;
+  platform_link: string;
+}) {
+  const req: ApiRequestType = {
+    endpoint: "api/groupsessions/create",
+    method: "POST",
+    body: {
+      title: sessionInfo.title,
+      description: sessionInfo.description,
+      durationInMinutes: sessionInfo.durationInMinutes,
+      startTime: sessionInfo.startTime.toISOString(),
+      maxParticipant: sessionInfo.maxParticipant,
+      platform_link: sessionInfo.platform_link,
+    },
+    auth: true,
+    ignoreError: false,
+  };
+
+  const res = await apiRequest(req);
+  if (res.success) {
+    return {
+      success: true,
+      data: res.data as GroupSessionInfoType,
+    };
+  } else {
+    return {
+      success: false,
+      error: res.error || "Failed to create group session",
+    };
+  }
+}
+
+
+export async function updateGroupSession(
+  sessionInfo: GroupSessionInfoType
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const req: ApiRequestType = {
+      endpoint: `api/groupsessions/${sessionInfo.id}`,
+      method: "PUT",
+      body: {
+        title: sessionInfo.title,
+        description: sessionInfo.description,
+        durationInMinutes: sessionInfo.durationInMinutes,
+        startTime: sessionInfo.startTime.toISOString(),
+        maxParticipant: sessionInfo.participants.max,
+        platform_link: sessionInfo.platform_link,
+      },
+      auth: true,
+      ignoreError: false,
+    };
+
+    console.log("Sending update request to:", req.endpoint); // Debug log
+    console.log("Request body:", req.body); // Debug log
+    const res = await apiRequest(req);
+    console.log("API response:", res); // Debug log
+
+    if (!res.success) {
+      console.error("API request failed with error:", res.error);
+      return {
+        success: false,
+        error: res.error || "Failed to update group session",
+      };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in updateGroupSession:", error.message, error.stack); // Detailed error log
+    return {
+      success: false,
+      error: error.message || "Unexpected error updating group session",
+    };
+  }
+}
+
+export async function deleteGroupSession(groupSessionId: string) {
+  const req: ApiRequestType = {
+    endpoint: `api/groupsessions/delete/${groupSessionId}`,
+    method: "DELETE",
+    auth: true,
+    ignoreError: false,
+  };
+
+  const res = await apiRequest(req);
+  if (res.success) {
+    return {
+      success: true,
+      data: res.data as GroupSessionInfoType,
+    };
+  } else {
+    return {
+      success: false,
+      error: res.error || "Failed to delete group session",
+    };
   }
 }

@@ -97,7 +97,7 @@ const SessionDetailsSheet = ({
           </span>
           <span className="flex my-2  items-center gap-x-2">
             <Image
-              src={sessionDetails.mentorImageLink}
+              src={sessionDetails.mentorImageLink ?? "/default-mentor.png"}
               alt="Mentor"
               width={40}
               height={40}

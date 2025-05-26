@@ -156,27 +156,6 @@
 // ------------------------- above code written by rafi -------------------
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
 import { getMyProfileDetailsMentor } from "@/app/lib/fetchers/mentor";
 import { updateMentorProfile } from "@/app/lib/mutations/mentor";
@@ -291,17 +270,17 @@ const MyProfile = () => {
       <ScrollArea className="h-screen w-screen w-full">
         <div className="flex flex-col items-center py-8 px-4 sm:px-8 lg:px-12 w-full max-w-7xl mx-auto min-h-[calc(100vh-70px)]">
           {/* Profile Header Section */}
-          <div className="w-full bg-gray-900 border border-orange-600/30 rounded-2xl p-6 mb-8">
+          <div className="w-full bg-gray-900/50 border border-orange-600/30 rounded-2xl p-6 mb-8">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="relative group">
                 <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-orange-500/80 shadow-lg">
                   {imageError ? (
-                    <div className="w-full h-full bg-gray-900 flex items-center justify-center text-gray-400">
+                    <div className="w-full h-full bg-gray-900/50 flex items-center justify-center text-gray-400">
                       <span className="text-sm">Image Failed to Load</span>
                     </div>
                   ) : (
                     <Image
-                      src={myProfile.image_link || "/placeholder.png"} // Fallback to a placeholder image
+                      src={myProfile.image_link || "/placeholder.png"} 
                       alt="Profile"
                       width={160}
                       height={160}
@@ -317,13 +296,13 @@ const MyProfile = () => {
                       Edit
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="bg-gray-900 text-white border border-orange-600/50 max-w-md">
+                  <DialogContent className="bg-gray-900/50 text-white border border-orange-600/50 max-w-md">
                     <DialogTitle className="text-xl text-orange-500 font-semibold">
                       Update Profile Picture
                     </DialogTitle>
                     <div className="flex flex-col items-center gap-4 py-4">
                       <ImageUploader
-                        source={myProfile.image_link || "/placeholder.png"} // Fallback to placeholder
+                        source={myProfile.image_link || "/placeholder.png"} 
                         setImage={(img) => setImage(img)}
                         image={image}
                       />
@@ -349,7 +328,7 @@ const MyProfile = () => {
 
           <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-gray-900 border border-orange-600/30 rounded-xl p-6 shadow-lg">
+              <div className="bg-gray-900/50 border border-orange-600/30 rounded-xl p-6 shadow-lg">
                 <h2 className="text-xl font-semibold text-orange-500 mb-6 pb-2 border-b border-orange-600/30">
                   Personal Details
                 </h2>
@@ -357,7 +336,7 @@ const MyProfile = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">Username</label>
-                      <div className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                      <div className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white">
                         {myProfile.username || "No username set"}
                       </div>
                     </div>
@@ -370,7 +349,7 @@ const MyProfile = () => {
                         }}
                         value={myProfile.name || ""}
                         placeholder="Your name"
-                        className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white"
+                        className="w-full bg-gray-900/50 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white"
                       />
                     </div>
                     
@@ -384,10 +363,10 @@ const MyProfile = () => {
                         setMyProfile(prev => prev ? { ...prev, gender: val as "Male" | "Female" } : null);
                       }}
                     >
-                      <SelectTrigger className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white h-11 text-base">
+                      <SelectTrigger className="w-full bg-gray-900/50 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white h-11 text-base">
                         <SelectValue placeholder="Select Gender" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-900 border border-gray-700 text-white text-base">
+                      <SelectContent className="bg-gray-900/50 border border-gray-700 text-white text-base">
                         <SelectItem 
                           value="Male"
                           className="hover:bg-gray-800 focus:bg-gray-800 px-4 py-2 text-base"
@@ -408,7 +387,7 @@ const MyProfile = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">Email</label>
-                      <div className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                      <div className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white">
                         {myProfile.email || "No email set"}
                       </div>
                     </div>
@@ -422,16 +401,16 @@ const MyProfile = () => {
                             className={cn(
                               "w-full justify-start text-left font-normal",
                               !myProfile.dob && "text-muted-foreground",
-                              "bg-gray-900 border border-gray-700 hover:bg-gray-700/50 text-white rounded-md"
+                              "bg-gray-900/50 border border-gray-700 hover:bg-gray-700/50 text-white rounded-md"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {myProfile.dob ? format(myProfile.dob, "PPP") : <span>Pick a date</span>}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-gray-900 border border-gray-700 rounded-md">
+                        <PopoverContent className="w-auto p-0 bg-gray-900/50 border border-gray-700 rounded-md">
                           {!selectedYear ? (
-                            <div className="p-4 bg-gray-900 rounded-md">
+                            <div className="p-4 bg-gray-900/50 rounded-md">
                               <h3 className="text-lg font-medium text-orange-500 mb-4">Select Year</h3>
                               <ScrollArea className="h-[300px]">
                                 <div className="grid grid-cols-4 gap-2">
@@ -442,7 +421,7 @@ const MyProfile = () => {
                                         key={year}
                                         variant={"ghost"}
                                         className={cn(
-                                          "bg-gray-900 hover:bg-orange-600 hover:text-white rounded-sm",
+                                          "bg-gray-900/50 hover:bg-orange-600 hover:text-white rounded-sm",
                                           selectedYear === year && "bg-orange-600 text-white"
                                         )}
                                         onClick={() => setSelectedYear(year)}
@@ -455,7 +434,7 @@ const MyProfile = () => {
                               </ScrollArea>
                             </div>
                           ) : !selectedMonth ? (
-                            <div className="p-4 bg-gray-900 rounded-md">
+                            <div className="p-4 bg-gray-900/50 rounded-md">
                               <div className="flex items-center justify-between mb-4">
                                 <Button
                                   variant="ghost"
@@ -476,7 +455,7 @@ const MyProfile = () => {
                                       key={month}
                                       variant={"ghost"}
                                       className={cn(
-                                        "bg-gray-900 hover:bg-orange-600 hover:text-white rounded-sm",
+                                        "bg-gray-900/50 hover:bg-orange-600 hover:text-white rounded-sm",
                                         selectedMonth === month && "bg-orange-600 text-white"
                                       )}
                                       onClick={() => setSelectedMonth(month)}
@@ -488,7 +467,7 @@ const MyProfile = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="p-0 bg-gray-900 rounded-md">
+                            <div className="p-0 bg-gray-900/50 rounded-md">
                               <div className="flex items-center justify-between p-4 border-b border-gray-700">
                                 <Button
                                   variant="ghost"
@@ -517,14 +496,14 @@ const MyProfile = () => {
                                     setMyProfile((prev) => (prev ? { ...prev, dob: date } : null));
                                   }
                                 }}
-                                className="border-0 bg-gray-900 p-4"
+                                className="border-0 bg-gray-900/50 p-4"
                                 classNames={{
                                   months: "flex flex-col sm:flex-row gap-4",
                                   month: "space-y-4 w-full",
                                   caption: "flex justify-center pt-1 relative items-center",
                                   caption_label: "text-sm font-medium text-orange-500",
                                   nav: "space-x-1 flex items-center",
-                                  nav_button: "h-7 w-7 bg-gray-900 hover:bg-orange-600 text-white rounded-sm",
+                                  nav_button: "h-7 w-7 bg-gray-900/50 hover:bg-orange-600 text-white rounded-sm",
                                   table: "w-full border-collapse",
                                   head_row: "grid grid-cols-7 gap-1 text-orange-500",
                                   head_cell: "text-sm font-bold text-orange-500 w-9 h-9 flex items-center justify-center",
@@ -552,10 +531,10 @@ const MyProfile = () => {
                           setMyProfile(prev => prev ? { ...prev, grad_year: parseInt(val) } : null);
                         }}
                       >
-                        <SelectTrigger className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-md px-3 py-1.5 text-white h-11 text-base">
+                        <SelectTrigger className="w-full bg-gray-900/50 border border-gray-700 focus:border-orange-500 rounded-md px-3 py-1.5 text-white h-11 text-base">
                           <SelectValue placeholder="Select Year" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-900 border border-gray-700 text-white max-h-[300px] text-sm">
+                        <SelectContent className="bg-gray-900/50 border border-gray-700 text-white max-h-[300px] text-sm">
                           {Array.from({ length: 3000 - 1900 + 1 }, (_, i) => {
                             const year = 1900 + i;
                             return (
@@ -575,7 +554,7 @@ const MyProfile = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-900 border border-orange-600/30 rounded-xl p-6 shadow-lg">
+              <div className="bg-gray-900/50 border border-orange-600/30 rounded-xl p-6 shadow-lg">
                 <h2 className="text-xl font-semibold text-orange-500 mb-4 pb-2 border-b border-orange-600/30">
                   About Me
                 </h2>
@@ -586,11 +565,11 @@ const MyProfile = () => {
                   }}
                   value={myProfile.bio || ""}
                   placeholder="Tell us about yourself..."
-                  className="w-full min-h-[120px] bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-3 text-white"
+                  className="w-full min-h-[120px] bg-gray-900/50 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-3 text-white"
                 />
               </div>
 
-              <div className="bg-gray-900 border border-orange-600/30 rounded-xl p-6 shadow-lg">
+              <div className="bg-gray-900/50 border border-orange-600/30 rounded-xl p-6 shadow-lg">
                 <h2 className="text-xl font-semibold text-orange-500 mb-6 pb-2 border-b border-orange-600/30">
                   Social Links
                 </h2>
@@ -612,7 +591,7 @@ const MyProfile = () => {
                         }}
                         value={myProfile.socials[social.key as keyof typeof myProfile.socials] || ""}
                         placeholder={`Your ${social.label} URL`}
-                        className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white"
+                        className="w-full bg-gray-900/50 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white"
                       />
                     </div>
                   ))}
@@ -621,7 +600,7 @@ const MyProfile = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-gray-900 border border-orange-600/30 rounded-xl p-6 shadow-lg">
+              <div className="bg-gray-900/50 border border-orange-600/30 rounded-xl p-6 shadow-lg">
                 <h2 className="text-xl font-semibold text-orange-500 mb-4 pb-2 border-b border-orange-600/30">
                   Account Security
                 </h2>
@@ -634,11 +613,11 @@ const MyProfile = () => {
                     }}
                     value={myProfile.password || ""}
                     placeholder="Update your password"
-                    className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white"
+                    className="w-full bg-gray-900/50 border border-gray-700 focus:border-orange-500 rounded-lg px-4 py-2 text-white"
                   />
                 </div>
               </div>
-              <div className="bg-gray-900 border border-orange-600/30 rounded-xl p-6 shadow-lg h-auto">
+              <div className="bg-gray-900/50 border border-orange-600/30 rounded-xl p-6 shadow-lg h-auto">
                 <h2 className="text-xl font-semibold text-orange-500 mb-4 pb-2 border-b border-orange-600/30">
                   My Interests
                 </h2>

@@ -9,7 +9,6 @@ import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { minutesToHours } from "../page";
-// import { minutesToHours } from '@/app/utils/time';
 import { ChevronLeft, Clock, Hourglass } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";

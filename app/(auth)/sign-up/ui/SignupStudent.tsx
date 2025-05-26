@@ -345,7 +345,7 @@ const SignupStudent = () => {
                 <SelectValue placeholder="Graduation Year" />
               </SelectTrigger>
               <SelectContent className="bg-black border border-gray-700 text-white max-h-[300px]">
-                {Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => {
+                {Array.from({ length: 2050 - 1900 + 1 }, (_, i) => {
                   const year = 1900 + i;
                   return (
                     <SelectItem 
