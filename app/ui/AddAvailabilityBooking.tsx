@@ -380,14 +380,3 @@ export default AddAvailabilityBooking;
 
 
 
-
-
-
-
-
-
-
-
-
-
-

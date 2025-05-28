@@ -113,7 +113,7 @@ const SidebarElements = [
     url: "/m/mysessions",
   },
   {
-    name: "Bookings",
+    name: "Time Slot",
     icon: <Calendar className="w-4 h-4" />,
     url: "/m/bookings",
   },

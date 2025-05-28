@@ -1,7 +1,7 @@
 "use client";
 import { GroupSessionInfoType } from "@/app/types";
 import { toast } from "sonner";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { updateGroupSession } from "@/app/lib/mutations/mentor";
 import EditableField from "@/app/ui/EditableField";
 import {
@@ -16,22 +16,123 @@ import { DateTimePicker } from "@/app/ui/CalendarUI/CustomDateTimePicker";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { isBefore, isSameDay, addMinutes, isWithinInterval } from "date-fns";
+
+type GroupSessionType = {
+  id: string; 
+  startTime: Date;
+  durationInMinutes: number;
+};
+
+// Placeholder function to fetch existing group sessions (replace with your actual implementation)
+const fetchGroupSessions = async (): Promise<GroupSessionType[]> => {
+  // Simulate fetching existing sessions; replace with your API call
+  return [];
+  // Example: return await yourApi.getGroupSessions();
+};
 
 type Props = {
   GroupSessionDetails: GroupSessionInfoType;
   onClose?: () => void;
-  onUpdate?: (updatedSession: GroupSessionInfoType) => void; // Add callback to notify parent
+  onUpdate?: (updatedSession: GroupSessionInfoType) => void;
 };
 
 const EditGroupSession = ({ GroupSessionDetails, onClose, onUpdate }: Props) => {
   const [sessionDetails, setSessionDetails] = useState<GroupSessionInfoType>({
     ...GroupSessionDetails,
-    startTime: GroupSessionDetails.startTime instanceof Date && !isNaN(GroupSessionDetails.startTime.getTime())
-      ? GroupSessionDetails.startTime
-      : new Date(),
+    startTime:
+      GroupSessionDetails.startTime instanceof Date &&
+      !isNaN(GroupSessionDetails.startTime.getTime())
+        ? GroupSessionDetails.startTime
+        : new Date(),
   });
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isValid, setIsValid] = useState(false);
+  const [existingSessions, setExistingSessions] = useState<GroupSessionType[]>([]);
+
+  // Fetch existing group sessions on mount
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const sessions = await fetchGroupSessions();
+        // Exclude the current session from overlap checks
+        setExistingSessions(
+          sessions.filter((session) => session.id !== GroupSessionDetails.id)
+        );
+      } catch (error) {
+        toast.error("Failed to load existing sessions.");
+        console.error(error);
+      }
+    };
+    loadSessions();
+  }, [GroupSessionDetails.id]);
+
+  // Validate time and other inputs
+  useEffect(() => {
+    const now = new Date(); 
+    const isStartValid = isBefore(now, sessionDetails.startTime);
+    const endTime = addMinutes(
+      sessionDetails.startTime,
+      sessionDetails.durationInMinutes
+    );
+    const isEndValid =
+      sessionDetails.durationInMinutes > 0 &&
+      isSameDay(sessionDetails.startTime, endTime) &&
+      isBefore(sessionDetails.startTime, endTime);
+
+    // Check for overlaps with existing sessions
+    const hasOverlap = existingSessions.some((session) => {
+      const sessionEnd = addMinutes(new Date(session.startTime), session.durationInMinutes);
+      return (
+        isWithinInterval(sessionDetails.startTime, {
+          start: new Date(session.startTime),
+          end: sessionEnd,
+        }) ||
+        isWithinInterval(endTime, {
+          start: new Date(session.startTime),
+          end: sessionEnd,
+        }) ||
+        (isBefore(new Date(session.startTime), endTime) &&
+          isBefore(sessionDetails.startTime, sessionEnd))
+      );
+    });
+
+    if (!isStartValid) {
+      setError("Start time must be in the future.");
+    } else if (!isEndValid) {
+      setError("End time must be on the same day and after start time.");
+    } else if (hasOverlap) {
+      setError("This time slot overlaps with an existing group session.");
+    } else {
+      setError(null);
+    }
+
+    setIsValid(
+      Boolean(
+        isStartValid &&
+        isEndValid &&
+        !hasOverlap &&
+        sessionDetails.title.trim() &&
+        sessionDetails.durationInMinutes > 0 &&
+        sessionDetails.participants.max >= 1 &&
+        sessionDetails.platform_link.trim()
+      )
+    );
+
+    // Show error via toast whenever error changes
+    if (error) {
+      toast.warning(error);
+    }
+  }, [
+    sessionDetails.startTime,
+    sessionDetails.durationInMinutes,
+    sessionDetails.title,
+    sessionDetails.participants.max,
+    sessionDetails.platform_link,
+    existingSessions,
+  ]);
 
   const validateFields = () => {
     if (!sessionDetails.title.trim()) {
@@ -42,7 +143,10 @@ const EditGroupSession = ({ GroupSessionDetails, onClose, onUpdate }: Props) => 
       toast.warning("Session duration is required.");
       return false;
     }
-    if (!(sessionDetails.startTime instanceof Date) || isNaN(sessionDetails.startTime.getTime())) {
+    if (
+      !(sessionDetails.startTime instanceof Date) ||
+      isNaN(sessionDetails.startTime.getTime())
+    ) {
       toast.warning("Valid start time is required.");
       return false;
     }
@@ -52,6 +156,10 @@ const EditGroupSession = ({ GroupSessionDetails, onClose, onUpdate }: Props) => 
     }
     if (!sessionDetails.platform_link.trim()) {
       toast.warning("Platform link is required.");
+      return false;
+    }
+    if (error) {
+      toast.warning(error);
       return false;
     }
     return true;
@@ -64,14 +172,13 @@ const EditGroupSession = ({ GroupSessionDetails, onClose, onUpdate }: Props) => 
     setLoading(true);
     try {
       console.log("Starting update process for group session:", sessionDetails);
-      const res = await updateGroupSession(sessionDetails); // Call the backend API
+      const res = await updateGroupSession(sessionDetails);
       console.log("Update response received:", res);
       if (res.success) {
         toast.success("Group session updated successfully.");
         setMessage("Group session updated successfully.");
-        // Notify parent with updated session
         if (onUpdate) {
-          onUpdate({ ...sessionDetails }); // Pass the updated session to parent
+          onUpdate({ ...sessionDetails });
         }
         if (onClose) {
           onClose();
@@ -89,10 +196,16 @@ const EditGroupSession = ({ GroupSessionDetails, onClose, onUpdate }: Props) => 
   };
 
   const handleDateChange = (value: Date | null) => {
-    setSessionDetails({
-      ...sessionDetails,
-      startTime: value instanceof Date && !isNaN(value.getTime()) ? value : new Date(),
-    });
+    const now = new Date("2025-05-27T12:22:00+06:00");
+    if (value instanceof Date && !isNaN(value.getTime()) && isBefore(now, value)) {
+      setSessionDetails({ ...sessionDetails, startTime: value });
+    } else {
+      setSessionDetails({
+        ...sessionDetails,
+        startTime: addMinutes(now, 5),
+      });
+      setError("Start time must be in the future.");
+    }
   };
 
   return (
@@ -189,7 +302,7 @@ const EditGroupSession = ({ GroupSessionDetails, onClose, onUpdate }: Props) => 
         <Button
           className="bg-orange-500 text-white rounded-md px-3 py-1.5 hover:bg-orange-600 transition-colors duration-200 text-sm font-medium"
           onClick={handleUpdateSession}
-          disabled={loading}
+          disabled={loading || !isValid}
         >
           Update
         </Button>

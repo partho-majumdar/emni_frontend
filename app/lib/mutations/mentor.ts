@@ -212,7 +212,7 @@ export async function createGroupSession(sessionInfo: {
   platform_link: string;
 }) {
   const req: ApiRequestType = {
-    endpoint: "api/groupsessions/create",
+    endpoint: "api/group-sessions/create",
     method: "POST",
     body: {
       title: sessionInfo.title,
@@ -246,7 +246,7 @@ export async function updateGroupSession(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const req: ApiRequestType = {
-      endpoint: `api/groupsessions/${sessionInfo.id}`,
+      endpoint: `api/group-sessions/${sessionInfo.id}`,
       method: "PUT",
       body: {
         title: sessionInfo.title,
@@ -285,22 +285,31 @@ export async function updateGroupSession(
 
 export async function deleteGroupSession(groupSessionId: string) {
   const req: ApiRequestType = {
-    endpoint: `api/groupsessions/delete/${groupSessionId}`,
+    endpoint: `api/group-sessions/delete/${groupSessionId}`,
     method: "DELETE",
     auth: true,
     ignoreError: false,
   };
 
-  const res = await apiRequest(req);
-  if (res.success) {
-    return {
-      success: true,
-      data: res.data as GroupSessionInfoType,
-    };
-  } else {
+  try {
+    const res = await apiRequest(req);
+    if (res.success) {
+      return {
+        success: true,
+        data: res.data as GroupSessionInfoType,
+      };
+    } else {
+      return {
+        success: false,
+        error: res.error || "Failed to delete group session",
+        status: res.status || 500,
+      };
+    }
+  } catch (error: any) {
     return {
       success: false,
-      error: res.error || "Failed to delete group session",
+      error: error.response?.error || error.message || "Failed to delete group session",
+      status: error.status || 500,
     };
   }
 }
