@@ -1,4 +1,4 @@
-# UMENT
+<!-- # UMENT
 
 > AI powered One point solution to your campus life!
 
@@ -94,4 +94,4 @@ Students can register as a Mentor and teach their expertised knowledges to other
 
 - AI Generated Roadmap for students
 - Task Completion Status
-- Time based plan generation
+- Time based plan generation -->
