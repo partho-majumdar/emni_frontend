@@ -99,7 +99,7 @@ export async function getAvailabilities() {
   if (!res.success) {
     throw new Error("Availability fetching error");
   }
-  console.log("recieved availability", res.data);
+  console.log("received availability", res.data);
   interface MentorAvailabilityItem {
     id: string;
     start: string;

@@ -249,38 +249,6 @@ export async function getGroupSessionListByMentorId(mID: string): Promise<GroupS
   }
 }
 
-// export async function getGroupSessionParticipants(gsid: string) {
-//   const req: ApiRequestType = {
-//     endpoint: `api/group-sessions/participantlist/${gsid}`,
-//     method: "GET",
-//     auth: true,
-//   };
-//   try {
-//     const res = await apiRequest(req);
-//     if (!res.success || !Array.isArray(res.data)) {
-//       throw new Error(`Failed to fetch participants for Group Session ID: ${gsid}`);
-//     }
-//     const data: GroupSessionParticipantInfo[] = res.data;
-//     const refined = data.map((p: GroupSessionParticipantInfo) => ({
-//       ...p,
-//       photoLink: p.photoLink && p.photoLink.length > 0 ? p.photoLink : getAvatar(p.id),
-//     }));
-//     return refined;
-//   } catch (error: any) {
-//     if (error.status === 403) {
-//       console.warn(`Access denied to participant list for session ${gsid}. User may not have permission to view this data.`);
-//       return [];
-//     }
-    
-//     console.error(`getGroupSessionParticipants Error for gsid=${gsid}:`, {
-//       message: error.message,
-//       status: error.status,
-//     });
-//     throw error;
-//   }
-// }
-
-
 export async function getGroupSessionParticipants(gsid: string) {
   const req: ApiRequestType = {
     endpoint: `api/group-sessions/participantlist/${gsid}`,

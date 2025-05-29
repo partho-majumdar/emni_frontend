@@ -20,7 +20,6 @@ export async function getStudentPersonalInfo(sID: string) {
   }
   const res = res1.data;
   const studentPersonalInfo = StudentInfoSchema.parse(res);
-  console.log("student info ", studentPersonalInfo);
 
   return studentPersonalInfo;
 }
@@ -32,22 +31,56 @@ export async function getMentorAvailableSlots(mID: string) {
     auth: true,
   };
   const res = await apiRequest(req);
-  console.log("mentor available slots", res);
-  const data: AvalabilityType[] = res.map((slot: any) => {
-    return {
-      ...slot,
-      start: new Date(slot.start),
-      end: new Date(slot.end),
-    };
+
+  let slotsData: RawSlot[] = [];
+  if (Array.isArray(res)) {
+    slotsData = res;
+  } else if (res && typeof res === 'object' && 'availability' in res && Array.isArray(res.availability)) {
+    slotsData = res.availability;
+  } else {
+    console.error("Invalid API response:", res);
+    return [];
+  }
+
+  interface RawSlot {
+    id: string;
+    start: string;
+    end: string;
+    booked?: any[];
+    medium?: string[] | string;
+  }
+
+  const data: AvalabilityType[] = slotsData
+    .map((slot: RawSlot): AvalabilityType | null => {
+      try {
+        return {
+          id: slot.id,
+          start: new Date(slot.start),
+          end: new Date(slot.end),
+          booked: slot.booked || [], 
+          medium: Array.isArray(slot.medium)
+            ? slot.medium.filter((m): m is "online" | "offline" => m === "online" || m === "offline")
+            : ["online"], 
+        };
+      } catch (e) {
+        console.error(`Invalid date format for slot ${slot.id}:`, slot.start, slot.end);
+        return null;
+      }
+    })
+    .filter((slot): slot is AvalabilityType => slot !== null);
+
+  const unbookedSlots = data.filter((slot) => {
+    return Array.isArray(slot.booked) && slot.booked.length === 0;
   });
-  return data.filter((slot) => slot.booked.length === 0);
+  return unbookedSlots;
 }
+
 
 export async function getMentorAvailabliltyById(aId: string) {
   const req: ApiRequestType = {
-    endpoint: `api/student/mavaliableat/aid/${aId}`, // requires refactoring
+    endpoint: `api/student/mavaliableat/aid/${aId}`,
     method: "GET",
-    auth: true, // student auth
+    auth: true, 
   };
   const res = await apiRequest(req);
   if (!res.success) {
@@ -66,7 +99,6 @@ export async function getMentorBasedOnInterest() {
   if (!res.success) {
     throw new Error("Failed to fetch mentor availability");
   }
-  console.log("mentor suggestiong", res.data);
   const data = res.data.map((mentor: MentorSuggestionType) => {
     if (mentor.profile_pic && mentor.profile_pic.length > 0) {
       return mentor;
@@ -101,11 +133,9 @@ export async function getStudentBookedSessions(sID: string) {
   };
 
   const res = await apiRequest(req);
-  console.log(res);
   if (!res.success) {
     throw new Error("Error fetching Booked Sessions");
   }
-  console.log("booked sessions by student ", res.data);
   return res.data;
 }
 
@@ -120,15 +150,12 @@ export async function getMyProfileDetailsStudent() {
   if (!res.success) {
     throw new Error("Error fetching my (student) details");
   }
-  console.log("student ", res.data);
   const refined: StudentInfoType = { ...res.data };
   refined.dob = new Date(res.data.dob);
   refined.image_link =
     res.data.image_link.length > 0
       ? res.data.image_link
       : getAvatar(res.data.username);
-
-  console.log("my profile details came from server ", refined);
   return refined;
 }
 

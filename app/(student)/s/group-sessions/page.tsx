@@ -4,8 +4,8 @@ import { GroupSessionInfoType, GroupSessionParticipantInfo } from "@/app/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { isValid } from "date-fns";
-import { Users, Hourglass } from "lucide-react";
+import { isValid, format } from "date-fns"; // Import format for date/time display
+import { Users, Hourglass, Calendar } from "lucide-react"; // Add Calendar icon
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -177,8 +177,6 @@ type Props = {
   studentId: string | null;
   onSessionUpdate: (sessionId: string, updatedData: Partial<GroupSessionInfoType>) => void;
 };
-
-
 
 const GroupSessionCard = ({ GroupSessionDetails, ColorTheme, studentId, onSessionUpdate }: Props) => {
   const router = useRouter();
@@ -354,7 +352,7 @@ const GroupSessionCard = ({ GroupSessionDetails, ColorTheme, studentId, onSessio
   return (
     <Card
       className={cn(
-        "relative bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-xl",
+        "relative bg-gray-800/80 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-lg transition-transform duration-300 hover:scale-102 hover:shadow-xl",
         ColorTheme.bg
       )}
     >
@@ -420,7 +418,6 @@ const GroupSessionCard = ({ GroupSessionDetails, ColorTheme, studentId, onSessio
               </Tooltip>
             )}
           </div>
-
         </div>
         <CardTitle className="text-xl font-bold text-white line-clamp-2">
           {GroupSessionDetails.title}
@@ -434,6 +431,14 @@ const GroupSessionCard = ({ GroupSessionDetails, ColorTheme, studentId, onSessio
               startTime={GroupSessionDetails.startTime}
               durationInMinutes={GroupSessionDetails.durationInMinutes}
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-orange-500" />
+            <span>
+              {isValid(GroupSessionDetails.startTime)
+                ? format(GroupSessionDetails.startTime, "MMM d, yyyy, h:mm a")
+                : "Invalid date"}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Hourglass className="w-4 h-4 text-orange-500" />
@@ -479,7 +484,7 @@ const GroupSessionCard = ({ GroupSessionDetails, ColorTheme, studentId, onSessio
               "mt-4 w-full bg-gray-600 text-white hover:bg-gray-700 transition-colors duration-300",
               ColorTheme.accent
             )}
-            onClick={handleCancel} // Allow cancellation from waiting list
+            onClick={handleCancel}
           >
             Waiting
           </Button>
@@ -498,7 +503,6 @@ const GroupSessionCard = ({ GroupSessionDetails, ColorTheme, studentId, onSessio
     </Card>
   );
 };
-
 
 export const colors = [
   // Original colors with added accent
@@ -542,7 +546,6 @@ export const colors = [
     text: "text-pink-500",
     accent: "bg-pink-600 hover:bg-pink-700",
   },
-
   // New transparent variants with matching accents
   {
     bg: "bg-orange-900/30",
@@ -564,7 +567,6 @@ export const colors = [
     text: "text-gray-300",
     accent: "bg-gray-500 hover:bg-gray-600",
   },
-  
   // Additional complementary colors
   {
     bg: "bg-indigo-800",

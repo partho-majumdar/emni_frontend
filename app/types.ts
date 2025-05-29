@@ -1,7 +1,3 @@
-import { z } from "zod";
-import { StudentInfoSchema } from "./(student)/schemas";
-import { MentorInfoSchema } from "./(mentor)/schemas";
-
 export type InterestType = {
   interest_id: string;
   interest_name: string;
@@ -37,9 +33,6 @@ export type MentorInfoType = {
   image_link: string;
 };
 
-// export type StudentPersonalInfoType = z.infer<typeof StudentInfoSchema>;
-// export type MentorPersonalInfoType = z.infer<typeof MentorInfoSchema>;
-
 export type meeting_medium = "online" | "offline";
 
 export type SessionInfoType = {
@@ -67,7 +60,7 @@ export type AvalabilityType = {
   id?: string;
   start: Date;
   end: Date;
-  booked: boolean | string | string[];
+  booked: string[];
   medium: ("online" | "offline")[];
 };
 
