@@ -25,7 +25,7 @@ export async function bookSession(
   medium: string,
 ) {
   const req: ApiRequestType = {
-    endpoint: `api/student/payment/${sessionID}`,
+    endpoint: `api/sessions/book/${sessionID}`,
     method: "POST",
     body: {
       AvailabilityID: availabilityID,

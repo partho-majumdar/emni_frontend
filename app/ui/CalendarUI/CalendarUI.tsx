@@ -211,32 +211,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useCalendarContext } from "./CalendarContext";
-import {
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
-  isSameDay,
-  format,
-  isWithinInterval,
-  isBefore,
-  startOfToday,
-} from "date-fns";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, format, isWithinInterval, isBefore, startOfToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AvalabilityType, BookedSessionType } from "@/app/types";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import SessionDetailsSheet from "./SessionDetailsSheet";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -361,8 +340,8 @@ export default function CalendarUI({ availabilities: initialAvailabilities = [],
                     isSameDay(item.start, calDate)
                   );
                   const allEntries = [...dayAvailabilities, ...dayBookedSessions];
-                  const displayedEntries = allEntries.slice(0, 2); // Show only first 2 entries
-                  const hasMore = allEntries.length > 2; // Show count if more than 2 entries
+                  const displayedEntries = allEntries.slice(0, 2); 
+                  const hasMore = allEntries.length > 2;
 
                   return (
                     <div
@@ -421,7 +400,7 @@ export default function CalendarUI({ availabilities: initialAvailabilities = [],
                                         id: undefined,
                                         start: item.start instanceof Date ? item.start : new Date(item.start),
                                         end: item.end instanceof Date ? item.end : new Date(item.end),
-                                        booked: false,
+                                        booked: [],
                                         medium: [item.medium || "offline"],
                                       }
                                     : (item as AvalabilityType);
@@ -484,7 +463,7 @@ export default function CalendarUI({ availabilities: initialAvailabilities = [],
                                 id: undefined,
                                 start: item.start instanceof Date ? item.start : new Date(item.start),
                                 end: item.end instanceof Date ? item.end : new Date(item.end),
-                                booked: false,
+                                booked: [],
                                 medium: [item.medium || "offline"],
                               }
                             : (item as AvalabilityType);

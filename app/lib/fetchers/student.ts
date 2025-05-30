@@ -189,3 +189,16 @@ export async function getNextBookedStudent(t: string) {
 
   return refined;
 }
+
+export async function getUcoinBalance(): Promise<number> {
+  const req: ApiRequestType = {
+    endpoint: `api/sessions/ucoin/balance`,
+    method: "GET",
+    auth: true,
+  };
+  const res = await apiRequest(req);
+  if (!res.success) {
+    throw new Error("Failed to fetch UCOIN balance");
+  }
+  return res.data.ucoin_balance || 0;
+}

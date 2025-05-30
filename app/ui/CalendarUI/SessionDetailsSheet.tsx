@@ -205,14 +205,7 @@ import { Trash, Pencil, Users } from "lucide-react";
 import { deleteAvailability, updateAvailability } from "@/app/lib/mutations/mentor";
 import { toast } from "sonner";
 import { DateTimePicker } from "@/app/ui/CalendarUI/CustomDateTimePicker";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { hover_style, smooth_hover } from "@/app/ui/CustomStyles";
