@@ -80,7 +80,7 @@ export async function getMentorAvailabliltyById(aId: string) {
   const req: ApiRequestType = {
     endpoint: `api/student/mavaliableat/aid/${aId}`,
     method: "GET",
-    auth: true, 
+    auth: true,
   };
   const res = await apiRequest(req);
   if (!res.success) {

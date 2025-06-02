@@ -114,11 +114,9 @@ const SessionCard = ({
               {safeValue(sessionDetails.type, "Session")}
             </span>
           </div>
-
-          <CardTitle className="text-lg font-bold text-white leading-tight pr-20 truncate group-hover:text-orange-100 transition-colors duration-200 mb-3">
+          <CardTitle className="text-lg font-bold text-white leading-tight text-white     group-hover:text-orange-100 transition-colors duration-200 mb-3 mt-10">
             {safeValue(sessionDetails.title, "Untitled Session")}
           </CardTitle>
-
           {student && (
             <div className="flex items-center gap-2 p-2 bg-gray-800/60 rounded-lg border border-gray-600/50 backdrop-blur-sm">
               <div className="relative">

@@ -23,7 +23,7 @@
 
 //     return {
 //       ...gs,
-//       // ...gs.status, 
+//       // ...gs.status,
 //       mentor: {
 //         ...gs.mentor,
 //         photoLink: gs.mentor?.photoLink?.length > 0 ? gs.mentor.photoLink : getAvatar(gs.mentor?.id ?? ''),
@@ -142,33 +142,37 @@
 //   return refined;
 // }
 
-
-
-
-
-
-
-
 import { apiRequest, ApiRequestType } from "./apiClient";
 import { GroupSessionInfoType, GroupSessionParticipantInfo } from "../types";
 import { getAvatar } from "../utils/utility";
 
-const refineGroupSessionData = <T extends GroupSessionInfoType | GroupSessionInfoType[]>(data: T): T => {
+const refineGroupSessionData = <
+  T extends GroupSessionInfoType | GroupSessionInfoType[]
+>(
+  data: T
+): T => {
   const refineSingle = (gs: GroupSessionInfoType): GroupSessionInfoType => {
     return {
       ...gs,
       mentor: {
         ...gs.mentor,
-        photoLink: gs.mentor?.photoLink?.length > 0 ? gs.mentor.photoLink : getAvatar(gs.mentor?.id ?? ''),
+        photoLink:
+          gs.mentor?.photoLink?.length > 0
+            ? gs.mentor.photoLink
+            : getAvatar(gs.mentor?.id ?? ""),
       },
-      previewParticipants: gs.previewParticipants?.map((p) => ({
-        ...p,
-        photoLink: p.photoLink?.length > 0 ? p.photoLink : getAvatar(p.id ?? ''),
-      })) || [],
+      previewParticipants:
+        gs.previewParticipants?.map((p) => ({
+          ...p,
+          photoLink:
+            p.photoLink?.length > 0 ? p.photoLink : getAvatar(p.id ?? ""),
+        })) || [],
     };
   };
 
-  return Array.isArray(data) ? data.map(refineSingle) as T : refineSingle(data) as T;
+  return Array.isArray(data)
+    ? (data.map(refineSingle) as T)
+    : (refineSingle(data) as T);
 };
 
 export async function getGroupSessionsList(): Promise<GroupSessionInfoType[]> {
@@ -193,7 +197,9 @@ export async function getGroupSessionsList(): Promise<GroupSessionInfoType[]> {
   }
 }
 
-export async function getGroupSessionsById(gsid: string): Promise<GroupSessionInfoType> {
+export async function getGroupSessionsById(
+  gsid: string
+): Promise<GroupSessionInfoType> {
   if (!gsid || typeof gsid !== "string") {
     throw new Error("Invalid or missing group session ID");
   }
@@ -211,7 +217,10 @@ export async function getGroupSessionsById(gsid: string): Promise<GroupSessionIn
     }
     const data = {
       ...res.data,
-      startTime: typeof res.data.startTime === "string" ? new Date(res.data.startTime) : res.data.startTime,
+      startTime:
+        typeof res.data.startTime === "string"
+          ? new Date(res.data.startTime)
+          : res.data.startTime,
     };
     return refineGroupSessionData(data as GroupSessionInfoType);
   } catch (error: any) {
@@ -223,7 +232,9 @@ export async function getGroupSessionsById(gsid: string): Promise<GroupSessionIn
   }
 }
 
-export async function getGroupSessionListByMentorId(mID: string): Promise<GroupSessionInfoType[]> {
+export async function getGroupSessionListByMentorId(
+  mID: string
+): Promise<GroupSessionInfoType[]> {
   if (!mID || typeof mID !== "string") {
     throw new Error("Invalid or missing mentor ID");
   }
@@ -256,53 +267,56 @@ export async function getGroupSessionParticipants(gsid: string) {
     auth: true,
     ignoreError: true,
   };
-  
+
   try {
     const res = await apiRequest(req);
-    
+
     // Check if the request was successful
     if (!res.success) {
       // Handle different error cases
       if (res.status === 403) {
-        console.warn(`Access denied to participant list for session ${gsid}. User may not have permission to view this data.`);
+        console.warn(
+          `Access denied to participant list for session ${gsid}. User may not have permission to view this data.`
+        );
         return [];
       }
       // For other errors, throw to be handled by the caller
-      const error: any = new Error(res.message || `Failed to fetch participants for Group Session ID: ${gsid}`);
+      const error: any = new Error(
+        res.message ||
+          `Failed to fetch participants for Group Session ID: ${gsid}`
+      );
       error.status = res.status;
       throw error;
     }
-    
+
     // Validate the response data
     if (!Array.isArray(res.data)) {
       throw new Error(`Invalid response format for Group Session ID: ${gsid}`);
     }
-    
+
     const data: GroupSessionParticipantInfo[] = res.data;
     const refined = data.map((p: GroupSessionParticipantInfo) => ({
       ...p,
-      photoLink: p.photoLink && p.photoLink.length > 0 ? p.photoLink : getAvatar(p.id),
+      photoLink:
+        p.photoLink && p.photoLink.length > 0 ? p.photoLink : getAvatar(p.id),
     }));
-    
+
     return refined;
   } catch (error: any) {
     // Handle any remaining errors
-    console.error(`getGroupSessionParticipants Error for gsid=${gsid}:`, {
-      message: error.message,
-      status: error.status,
-    });
-    
+    // console.error(`getGroupSessionParticipants Error for gsid=${gsid}:`, {
+    //   message: error.message,
+    //   status: error.status,
+    // });
+
     // If it's a 403 error, return empty array instead of throwing
     if (error.status === 403) {
       return [];
     }
-    
+
     throw error;
   }
 }
-
-
-
 
 export async function getEntireInterestsList() {
   const req: ApiRequestType = {

@@ -80,7 +80,6 @@ const Bookings = () => {
   useEffect(() => {
     const fn = async () => {
       const res = await getAvailabilities();
-      // Map the response to AvalabilityType by adding missing properties
       const mapped = res.map((item: any) => ({
         ...item,
         booked: item.booked ?? false,
@@ -97,10 +96,6 @@ const Bookings = () => {
         <div className="flex gap-2 items-center">
           <div>
             <CalendarMonthSwitcher />
-          </div>
-          <div className="flex gap-2 items-center">
-            <div className="w-[20px] h-[20px] bg-orange-800 rounded-2xl"></div>
-            Booked Slot
           </div>
         </div>
         <div>

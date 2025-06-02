@@ -1,4 +1,3 @@
-import { MentorInfoSchema } from "@/app/(mentor)/schemas";
 import { apiRequest, ApiRequestType } from "@/app/lib/apiClient";
 import {
   InterestType,
