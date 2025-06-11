@@ -20,6 +20,8 @@ import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, ApiRequestType } from "@/app/lib/apiClient";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 const MyProfile = () => {
   const [myProfile, setMyProfile] = useState<StudentInfoType | null>(null);
@@ -29,6 +31,7 @@ const MyProfile = () => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [coinBalance, setCoinBalance] = useState<number>(0);
+  
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -102,12 +105,40 @@ const MyProfile = () => {
 
   if (!myProfile) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-lg">Loading your profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center space-y-6"
+        >
+        <div className="relative">
+          <motion.div
+            animate={{ 
+              rotate: 360,
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ 
+              rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+              scale: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+            }}
+            className="w-16 h-16 border-4 border-slate-700 border-t-amber-500/80 rounded-full"
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-2 border-2 border-slate-600 border-b-orange-400/60 rounded-full"
+          />
         </div>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-center"
+        >
+          <h3 className="text-white font-semibold mb-2">Loading Profile...</h3>
+        </motion.div>
+      </motion.div>
+    </div>
     );
   }
 
@@ -500,13 +531,6 @@ const MyProfile = () => {
                         <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </Link>
-                    {/* <button
-                      className="group w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/25 flex items-center justify-center gap-2"
-                    >
-                      <CreditCard className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      <span>Recharge UCOIN</span>
-                      <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button> */}
                     <p className="text-xs text-gray-400 mt-3">
                       Add more UCOIN to your wallet for premium features
                     </p>

@@ -42,7 +42,7 @@ const signUpSchema: z.ZodSchema = z.object({
   confirmPassword: z.string().min(8),
   dob: z.date(),
   grad_year: z.date(),
-  gener: genderSchema,
+  gender: genderSchema,
 });
 
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
@@ -168,7 +168,7 @@ export function SignupFormStudent() {
                 </FormItem>
               )}
             />
-            {error && <FormMessage type="error">{error}</FormMessage>}
+            {error && <FormMessage>{error}</FormMessage>}
           </div>
           <div className="flex flex-col gap-y-5">
             <FormField

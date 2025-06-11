@@ -341,7 +341,7 @@ const MentorTransactionHistoryPage = () => {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
-    }); // e.g., "Jun 2, 2025"
+    });
   };
 
   const handleDownloadTransactionPDF = async (transaction: Transaction) => {

@@ -1,4 +1,5 @@
 "use client";
+
 import { getGroupSessionsList, getGroupSessionParticipants } from "@/app/lib/fetchers";
 import { GroupSessionInfoType, GroupSessionParticipantInfo } from "@/app/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -120,12 +121,18 @@ const descriptionVariants = {
 
 const GroupSessionPage = () => {
   const [gsInfo, setGsInfo] = useState<GroupSessionInfoType[] | null>(null);
-  const [studentId, setStudentId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasShownRegistrationError, setHasShownRegistrationError] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'upcoming' | 'completed'>('all');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const studentId = typeof window !== "undefined" ? localStorage.getItem("student-id") : null;
+
+  if (!studentId) {
+    router.push("/sign-in");
+    return null;
+  }
 
   // Function to update specific session data
   const updateSessionData = (sessionId: string, updatedData: Partial<GroupSessionInfoType>) => {
@@ -186,11 +193,6 @@ const GroupSessionPage = () => {
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const id = localStorage.getItem("student-id");
-      setStudentId(id);
-    }
-
     const fn = async () => {
       try {
         const data = await getGroupSessionsList();

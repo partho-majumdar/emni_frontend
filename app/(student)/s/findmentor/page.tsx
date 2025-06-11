@@ -1,62 +1,688 @@
-import {
-  getMentorBasedOnInterest,
-  getMentorBasedOnLevel,
-} from "@/app/lib/fetchers/student";
-import { MentorSuggestionType } from "@/app/types";
-import { gradientText1 } from "@/app/ui/CustomStyles";
-import MentorShowCard from "@/app/ui/MentorShowCard";
-import { jakarta } from "@/app/utils/font";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import React from "react";
+"use client";
 
-const page = async () => {
-  const mentorsOnInterest: MentorSuggestionType[] =
-    await getMentorBasedOnInterest();
-  //const mentorOnTopRated: MentorSuggestionType[] =
-  //  await getMentorBasedOnLevel();
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
+import { apiRequest, ApiRequestType } from "@/app/lib/apiClient";
+import { Star, User, Users, BookOpen, X, GraduationCap, Mail, Search, Sparkles, Crown, Award, MapIcon } from "lucide-react";
+
+interface MentorSuggestionType {
+  mentorId: string;
+  userId: string;
+  username: string;
+  name: string;
+  email: string;
+  bio: string;
+  level: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+  sessionsTaken: number;
+  avgRating: string;
+  matchingInterests?: string[];
+  allInterests: string[];
+  matchingInterestsCount?: number;
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: MentorSuggestionType[];
+  message?: string;
+}
+
+const getAvatar = (username: string): string => {
+  return `https://robohash.org/${username}.png?size=120x120`;
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 120,
+      damping: 20,
+      mass: 1,
+    },
+  },
+};
+
+const MentorShowCard: React.FC<{ mentor: MentorSuggestionType }> = ({ mentor }) => {
+  const levelConfig = {
+    Beginner: {
+      color: "from-orange-400 to-orange-500",
+      bg: "bg-orange-500/10",
+      border: "border-orange-400/30",
+      text: "text-orange-300",
+      icon: <Sparkles className="w-3 h-3" />,
+    },
+    Intermediate: {
+      color: "from-orange-400 to-orange-500",
+      bg: "bg-orange-500/10",
+      border: "border-orange-400/30",
+      text: "text-orange-300",
+      icon: <BookOpen className="w-3 h-3" />,
+    },
+    Advanced: {
+      color: "from-orange-400 to-orange-500",
+      bg: "bg-orange-500/10",
+      border: "border-orange-400/30",
+      text: "text-orange-300",
+      icon: <Award className="w-3 h-3" />,
+    },
+    Expert: {
+      color: "from-orange-400 to-orange-500",
+      bg: "bg-orange-500/10",
+      border: "border-orange-400/30",
+      text: "text-orange-300",
+      icon: <Crown className="w-3 h-3" />,
+    },
+  };
+
+  const config = levelConfig[mentor.level];
+
+  const renderStars = (rating: string) => {
+    const numRating = parseFloat(rating) || 0;
+    const fullStars = Math.floor(numRating);
+    const hasHalfStar = numRating % 1 >= 0.5;
+
+    return (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 5 }).map((_, i) => {
+          if (i < fullStars) {
+            return (
+              <motion.div
+                key={`star-${i}`}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+              >
+                <Star className="w-4 h-4 text-orange-400 fill-orange-400" />
+              </motion.div>
+            );
+          } else if (i === fullStars && hasHalfStar) {
+            return (
+              <motion.div
+                key={`star-${i}`}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+                className="relative w-4 h-4"
+              >
+                <Star className="w-4 h-4 text-gray-600" />
+                <div className="absolute inset-0 overflow-hidden" style={{ width: "50%" }}>
+                  <Star className="w-4 h-4 text-orange-400 fill-orange-400" />
+                </div>
+              </motion.div>
+            );
+          } else {
+            return (
+              <motion.div
+                key={`star-${i}`}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+              >
+                <Star className="w-4 h-4 text-gray-600" />
+              </motion.div>
+            );
+          }
+        })}
+      </div>
+    );
+  };
+
   return (
-    <div className="px-16">
-      <div className="flex justify-end items-center">
-        <div
-          className={cn(
-            "font-semibold text-5xl  px-2 pb-2 my-6 z-10 ",
-            jakarta.className,
-            // "border-b-2 border-orange-800",
-            gradientText1,
-          )}
-        >
-          Find Mentor
+    <motion.div
+      variants={cardVariants}
+      className="relative bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 hover:border-orange-400/80 rounded-2xl overflow-hidden shadow-lg transition-all duration-300"
+    >
+      <div className="p-6 space-y-6">
+        <div className="flex items-start gap-4">
+          <motion.div whileHover={{ scale: 1.1, rotate: 5 }} className="relative">
+            <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-gray-600/50 hover:ring-orange-400/80 transition-all duration-300">
+              <img
+                src={getAvatar(mentor.username)}
+                alt={`${mentor.name}'s avatar`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/fallback-avatar.png";
+                }}
+              />
+            </div>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className={`absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r ${config.color} flex items-center justify-center shadow-md`}
+            >
+              {config.icon}
+            </motion.div>
+          </motion.div>
+
+          <div className="flex-1 min-w-0">
+            <motion.h3
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="font-bold text-white text-lg mb-1 truncate"
+            >
+              {mentor.name}
+            </motion.h3>
+            <motion.p
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-gray-400 text-sm mb-2"
+            >
+              @{mentor.username}
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-2"
+            >
+              {renderStars(mentor.avgRating)}
+              <span className="text-sm font-bold text-white">{mentor.avgRating}</span>
+            </motion.div>
+          </div>
         </div>
-      </div>
-      <div className={cn("w-[1500px] flex flex-col gap-y-5 mb-10")}>
-        <span className={cn(jakarta.className, " text-4xl font-semibold")}>
-          Mentors with Similar Interest
-        </span>
-        <ScrollArea>
-          <div className="flex gap-x-2">
-            {mentorsOnInterest.map((m, i) => (
-              <MentorShowCard key={i} MentorDetails={m} />
-            ))}
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="relative"
+        >
+          <p className="text-gray-400 text-sm leading-relaxed line-clamp-2">
+            {mentor.bio || "Passionate mentor ready to guide your learning journey"}
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="grid grid-cols-2 gap-4"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${config.color}`} />
+              <span className="text-xs text-gray-500 font-medium">LEVEL</span>
+            </div>
+            <div className={`px-3 py-1.5 ${config.bg} ${config.border} border rounded-xl flex items-center gap-2`}>
+              {config.icon}
+              <span className={`text-xs font-semibold ${config.text}`}>{mentor.level}</span>
+            </div>
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </div>
-      <div className={cn("w-[1500px] flex flex-col gap-y-5")}>
-        <span className={cn(jakarta.className, " text-4xl font-semibold")}>
-          Top Rated Mentors
-        </span>
-        <ScrollArea>
-          <div className="flex gap-x-2">
-            {mentorsOnInterest.map((m, i) => (
-              <MentorShowCard key={i} MentorDetails={m} />
-            ))}
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-400 to-orange-500" />
+              <span className="text-xs text-gray-500 font-medium">SESSIONS</span>
+            </div>
+            <div className="px-3 py-1.5 bg-orange-500/10 border border-orange-400/30 rounded-xl flex items-center gap-2">
+              <BookOpen className="w-3 h-3 text-orange-300" />
+              <span className="text-xs font-semibold text-orange-300">{mentor.sessionsTaken}</span>
+            </div>
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="space-y-2"
+        >
+          <div className="flex items-center gap-2">
+            <Mail className="w-3 h-3 text-gray-500" />
+            <span className="text-xs text-gray-500 font-medium">CONTACT</span>
+          </div>
+          <p className="text-sm text-gray-300 truncate bg-gray-800/50 px-3 py-2 rounded-lg">{mentor.email}</p>
+        </motion.div>
+
+        {(mentor.matchingInterests?.length || mentor.allInterests?.length) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="space-y-3"
+          >
+            {mentor.matchingInterests && mentor.matchingInterests.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-400 to-orange-500" />
+                  <span className="text-xs text-gray-500 font-medium">MATCHING INTERESTS</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {mentor.matchingInterests.slice(0, 3).map((interest, index) => (
+                    <motion.span
+                      key={`matching-interest-${index}`}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="px-2 py-1 bg-orange-500/10 border border-orange-400/30 text-orange-300 rounded-lg text-xs font-medium"
+                    >
+                      {interest}
+                    </motion.span>
+                  ))}
+                  {mentor.matchingInterests.length > 3 && (
+                    <span className="px-2 py-1 bg-gray-700/30 text-gray-400 rounded-lg text-xs">
+                      +{mentor.matchingInterests.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {mentor.allInterests && mentor.allInterests.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-400 to-orange-500" />
+                  <span className="text-xs text-gray-500 font-medium">SKILLED </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {mentor.allInterests.slice(0, 3).map((interest, index) => (
+                    <motion.span
+                      key={`all-interest-${index}`}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="px-2 py-1 bg-orange-500/10 border border-orange-400/30 text-orange-300 rounded-lg text-xs font-medium"
+                    >
+                      {interest}
+                    </motion.span>
+                  ))}
+                  {mentor.allInterests.length > 3 && (
+                    <span className="px-2 py-1 bg-gray-700/30 text-gray-400 rounded-lg text-xs">
+                      +{mentor.allInterests.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-500 transition-all duration-300 shadow-md hover:shadow-lg"
+          aria-label={`Contact ${mentor.name}`}
+          onClick={() => toast.info("Contact functionality coming soon!")}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <MapIcon className="w-4 h-4" />
+            See Details
+          </span>
+        </motion.button>
       </div>
+    </motion.div>
+  );
+};
+
+const FindMentor: React.FC = () => {
+  const [similarMentors, setSimilarMentors] = useState<MentorSuggestionType[]>([]);
+  const [otherMentors, setOtherMentors] = useState<MentorSuggestionType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const fetchMentors = async () => {
+    if (typeof window === "undefined") return;
+
+    const studentId = localStorage.getItem("student-id");
+    if (!studentId) {
+      setError("Please log in as a student to view mentors");
+      toast.error("Please log in as a student");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const similarReq: ApiRequestType = {
+        endpoint: "api/student/findmentor/interest",
+        method: "GET",
+        auth: true,
+      };
+
+      const otherReq: ApiRequestType = {
+        endpoint: "api/student/findmentor/other",
+        method: "GET",
+        auth: true,
+      };
+
+      const [similarResponse, otherResponse] = await Promise.all([
+        apiRequest(similarReq) as Promise<ApiResponse>,
+        apiRequest(otherReq) as Promise<ApiResponse>,
+      ]);
+
+      if (!similarResponse.success) {
+        throw new Error(similarResponse.message || "Failed to fetch similar mentors");
+      }
+      if (!otherResponse.success) {
+        throw new Error(otherResponse.message || "Failed to fetch other mentors");
+      }
+
+      setSimilarMentors(similarResponse.data || []);
+      setOtherMentors(otherResponse.data || []);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred while fetching mentors";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMentors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filteredSimilarMentors = similarMentors.filter((mentor) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      mentor.name.toLowerCase().includes(query) ||
+      mentor.email.toLowerCase().includes(query) ||
+      (mentor.matchingInterests && mentor.matchingInterests.some((interest) => interest.toLowerCase().includes(query))) ||
+      (mentor.allInterests && mentor.allInterests.some((interest) => interest.toLowerCase().includes(query)))
+    );
+  });
+
+  const filteredOtherMentors = otherMentors.filter((mentor) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      mentor.name.toLowerCase().includes(query) ||
+      mentor.email.toLowerCase().includes(query) ||
+      (mentor.allInterests && mentor.allInterests.some((interest) => interest.toLowerCase().includes(query)))
+    );
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center space-y-6"
+        >
+          <div className="relative">
+            <motion.div
+              animate={{ 
+                rotate: 360,
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                scale: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="w-16 h-16 border-4 border-slate-700 border-t-amber-500/80 rounded-full"
+            />
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-2 border-2 border-slate-600 border-b-orange-400/60 rounded-full"
+            />
+          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-center"
+          >
+            <h3 className="text-white font-semibold mb-2">Finding Perfect Mentors</h3>
+            <p className="text-slate-400 text-sm">
+              We're curating the best mentors based on your interests and learning goals...
+            </p>
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900/50 flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-md shadow-lg"
+        >
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-14 h-14 bg-orange-500/20 rounded-xl flex items-center justify-center">
+              <X className="w-7 h-7 text-orange-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-lg mb-1">Oops! Something went wrong</h3>
+              <p className="text-gray-400 text-sm">{error}</p>
+            </div>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={fetchMentors}
+            className="w-full bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-500 transition-all duration-300 shadow-md"
+          >
+            Try Again
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900/50">
+      <ScrollArea className="h-screen">
+        <div className="max-w-7xl mx-auto p-8 space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-8"
+          >
+            <div className="flex items-center justify-center space-x-4 mb-6">
+              <motion.div whileHover={{ scale: 1.1, rotate: 10 }} className="relative">
+                <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-md">
+                  <GraduationCap className="w-8 h-8 text-white" />
+                </div>
+                <motion.div
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0.8, 0.5],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute inset-0 bg-orange-500 rounded-2xl -z-10"
+                />
+              </motion.div>
+              <div className="text-left">
+                <motion.h1
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="text-4xl font-bold text-white"
+                >
+                  Find Your Mentor
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-gray-400 text-sm mt-1"
+                >
+                  Connect with world-class mentors who share your passion
+                </motion.p>
+              </div>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="relative max-w-lg mx-auto"
+            >
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or interests..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 hover:border-orange-400/80 focus:border-orange-400/80 rounded-xl px-6 py-4 pl-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/30 transition-all duration-300 shadow-md"
+                />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-400 transition-colors" />
+                {searchQuery && (
+                  <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    whileHover={{ scale: 1.1 }}
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="mentor-sections"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-16"
+            >
+              <div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-3 mb-8"
+                >
+                  <div className="w-1 h-8 bg-orange-500 rounded-full" />
+                  <h2 className="text-2xl font-bold text-white">Mentors with Similar Interests</h2>
+                  <div className="flex-1 h-px bg-gray-700/50" />
+                </motion.div>
+
+                {filteredSimilarMentors.length === 0 ? (
+                  <motion.div
+                    variants={cardVariants}
+                    className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-20 text-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                      className="w-24 h-24 bg-gray-700/30 rounded-2xl flex items-center justify-center mx-auto mb-8"
+                    >
+                      <User className="w-12 h-12 text-gray-400" />
+                    </motion.div>
+                    <motion.h3
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-xl font-bold text-white mb-3"
+                    >
+                      No Mentors Found
+                    </motion.h3>
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-gray-400 text-sm leading-relaxed max-w-md mx-auto"
+                    >
+                      {searchQuery
+                        ? "No mentors match your search criteria. Try adjusting your search terms."
+                        : "We couldn't find mentors with similar interests. Explore other mentors below!"}
+                    </motion.p>
+                  </motion.div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredSimilarMentors.map((mentor) => (
+                      <MentorShowCard key={mentor.mentorId} mentor={mentor} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-3 mb-8"
+                >
+                  <div className="w-1 h-8 bg-orange-500 rounded-full" />
+                  <h2 className="text-2xl font-bold text-white">Other Mentors</h2>
+                  <div className="flex-1 h-px bg-gray-700/50" />
+                </motion.div>
+
+                {filteredOtherMentors.length === 0 ? (
+                  <motion.div
+                    variants={cardVariants}
+                    className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-20 text-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                      className="w-24 h-24 bg-gray-700/30 rounded-2xl flex items-center justify-center mx-auto mb-8"
+                    >
+                      <Users className="w-12 h-12 text-gray-400" />
+                    </motion.div>
+                    <motion.h3
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-xl font-bold text-white mb-3"
+                    >
+                      No Mentors Found
+                    </motion.h3>
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-gray-400 text-sm leading-relaxed max-w-md mx-auto"
+                    >
+                      {searchQuery
+                        ? "No mentors match your search criteria. Try adjusting your search terms."
+                        : "No additional mentors available at this time. Check back later!"}
+                    </motion.p>
+                  </motion.div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredOtherMentors.map((mentor) => (
+                      <MentorShowCard key={mentor.mentorId} mentor={mentor} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
     </div>
   );
 };
 
-export default page;
+export default FindMentor;

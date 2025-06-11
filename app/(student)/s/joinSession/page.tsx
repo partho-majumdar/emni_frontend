@@ -22,7 +22,8 @@ import {
   Link as LinkIcon,
   ArrowRight,
   Mail,
-  DollarSign
+  DollarSign,
+  Star
 } from "lucide-react";
 
 // Interface for mentor data
@@ -144,6 +145,26 @@ const shimmerVariants = {
   }
 };
 
+const dialogVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95,
+    transition: {
+      duration: 0.2
+    }
+  }
+};
+
 export default function StudentBookedSessionsPage() {
   const [sessions, setSessions] = useState<BookedSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,6 +172,11 @@ export default function StudentBookedSessionsPage() {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'one_on_one' | 'group' | 'one_on_one_completed' | 'group_completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [reviewingSession, setReviewingSession] = useState<string | null>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [reviewText, setReviewText] = useState<string>('');
+  const [reviewedSessions, setReviewedSessions] = useState<Set<string>>(new Set());
+  const studentId = typeof window !== "undefined" ? localStorage.getItem("student-id") : null;
 
   const fetchBookedSessions = async () => {
     try {
@@ -188,6 +214,7 @@ export default function StudentBookedSessionsPage() {
       }));
 
       setSessions(sessionsWithDates);
+      await checkExistingReviews(sessionsWithDates);
     } catch (err: any) {
       setError(err.message || "An error occurred while fetching sessions");
     } finally {
@@ -195,14 +222,60 @@ export default function StudentBookedSessionsPage() {
     }
   };
 
+  const checkExistingReviews = async (sessionsToCheck: BookedSession[] = sessions) => {
+    if (!studentId) {
+      console.error("No student ID found in localStorage");
+      return;
+    }
+
+    try {
+      const reviewPromises = sessionsToCheck
+        .filter(session => getSessionStatus(session.start, session.end) === "Completed")
+        .map(async (session) => {
+          const endpoint = session.session_type === "1:1"
+            ? `api/student/review/one-on-one/${session.booking_id}`
+            : `api/student/review/group/${session.booking_id}`;
+          
+          const req: ApiRequestType = {
+            endpoint,
+            method: "GET",
+            auth: true,
+          };
+
+          const res = await apiRequest(req);
+          if (res.success && res.data) {
+            if (session.session_type === "group" && res.data.reviews) {
+              const hasReviewed = res.data.reviews.some(
+                (review: any) => review.student_id === studentId
+              );
+              return hasReviewed ? session.booking_id : null;
+            }
+            if (session.session_type === "1:1" && res.data.review_id) {
+              return session.booking_id;
+            }
+          }
+          return null;
+        });
+
+      const reviewedIds = (await Promise.all(reviewPromises)).filter(id => id !== null);
+      setReviewedSessions(new Set(reviewedIds));
+    } catch (err) {
+      console.error("Error checking existing reviews:", err);
+    }
+  };
+
   useEffect(() => {
+    if (!studentId) {
+      window.location.href = "/sign-in";
+      return;
+    }
     fetchBookedSessions();
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 60000); 
     return () => clearInterval(timer);
   }, []);
 
@@ -213,7 +286,7 @@ export default function StudentBookedSessionsPage() {
 
   const getCountdown = (startTime: Date) => {
     const diffInMs = startTime.getTime() - currentTime.getTime();
-    if (diffInMs <= 0 || diffInMs > 18 * 60 * 60 * 1000) return null; // Within 18 hours
+    if (diffInMs <= 0 || diffInMs > 18 * 60 * 60 * 1000) return null; 
     const hours = Math.floor(diffInMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffInMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m`;
@@ -248,6 +321,48 @@ export default function StudentBookedSessionsPage() {
     return formatDate(date);
   };
 
+  const handleReviewSubmit = async (session: BookedSession) => {
+    if (rating < 1 || rating > 5) {
+      toast.error("Please select a rating between 1 and 5 stars");
+      return;
+    }
+    if (!reviewText.trim()) {
+      toast.error("Please provide feedback text");
+      return;
+    }
+
+    try {
+      const endpoint = session.session_type === "1:1"
+        ? `api/student/review/one-on-one/${session.booking_id}`
+        : `api/student/review/group/${session.booking_id}`;
+      
+      const req: ApiRequestType = {
+        endpoint,
+        method: "POST",
+        auth: true,
+        body: {
+          rating,
+          review_text: reviewText
+        }
+      };
+
+      const res = await apiRequest(req);
+      
+      if (!res.success) {
+        throw new Error(res.message || "Failed to submit review");
+      }
+
+      setReviewedSessions(prev => new Set([...prev, session.booking_id]));
+      setReviewingSession(null);
+      setRating(0);
+      setReviewText('');
+      toast.success("Review submitted successfully!");
+      await checkExistingReviews();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit review");
+    }
+  };
+
   const filteredSessions = sessions.filter(session => {
     if (selectedFilter !== 'all') {
       const status = getSessionStatus(session.start, session.end);
@@ -275,6 +390,12 @@ export default function StudentBookedSessionsPage() {
     
     return true;
   });
+
+  const isSubmitEnabled = rating >= 1 && rating <= 5 && reviewText.trim().length > 0;
+
+  if (!studentId) {
+    return null; 
+  }
 
   if (loading) {
     return (
@@ -636,6 +757,7 @@ export default function StudentBookedSessionsPage() {
                           ? `https://maps.google.com/?q=${encodeURIComponent(session.meeting_details.online_link)}`
                           : null;
                     const hasLink = !!meetingLink;
+                    const hasReviewed = reviewedSessions.has(session.booking_id);
 
                     return (
                       <motion.div
@@ -828,11 +950,13 @@ export default function StudentBookedSessionsPage() {
                           )}
 
                           <motion.div
-                            whileHover={isCompleted ? {} : { scale: 1.02 }}
-                            whileTap={isCompleted ? {} : { scale: 0.98 }}
+                            whileHover={isCompleted && !hasReviewed ? { scale: 1.02 } : {}}
+                            whileTap={isCompleted && !hasReviewed ? { scale: 0.98 } : {}}
                             className={`block w-full text-center px-4 py-2 rounded-lg font-medium text-sm ${
                               isCompleted
-                                ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                                ? hasReviewed
+                                  ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                                  : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white'
                                 : hasLink
                                   ? isGroup
                                     ? 'bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white'
@@ -841,12 +965,24 @@ export default function StudentBookedSessionsPage() {
                                       : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white'
                                   : 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
                             }`}
+                            onClick={() => {
+                              if (isCompleted && !hasReviewed) {
+                                setReviewingSession(session.booking_id);
+                              }
+                            }}
                           >
                             {isCompleted ? (
-                              <div className="flex items-center justify-center space-x-2">
-                                <span>Session Completed</span>
-                                <Check className="w-4 h-4" />
-                              </div>
+                              hasReviewed ? (
+                                <div className="flex items-center justify-center space-x-2">
+                                  <span>Reviewed</span>
+                                  <Check className="w-4 h-4" />
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center space-x-2">
+                                  <span>Leave a Review</span>
+                                  <Star className="w-4 h-4" />
+                                </div>
+                              )
                             ) : (
                               <a
                                 href={hasLink ? meetingLink : '#'}
@@ -863,6 +999,101 @@ export default function StudentBookedSessionsPage() {
                       </motion.div>
                     );
                   })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {reviewingSession && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              >
+                <motion.div
+                  variants={dialogVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="bg-slate-800/90 border border-slate-700/50 rounded-2xl p-6 w-full max-w-md"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">Rate this session</h3>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        setReviewingSession(null);
+                        setRating(0);
+                        setReviewText('');
+                      }}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      <X className="w-5 h-5" />
+                    </motion.button>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-center space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <motion.button
+                          key={star}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setRating(star)}
+                          className="focus:outline-none"
+                        >
+                          <Star
+                            className={`w-6 h-6 ${
+                              star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-400'
+                            }`}
+                          />
+                        </motion.button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      placeholder="Share your feedback (required)"
+                      className="w-full bg-slate-900/50 border border-slate-700/30 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                      rows={4}
+                    />
+                    <div className="flex space-x-2">
+                      <AnimatePresence>
+                        {isSubmitEnabled && (
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleReviewSubmit(sessions.find(s => s.booking_id === reviewingSession)!)}
+                            className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white px-4 py-2 rounded-lg font-medium text-sm"
+                          >
+                            Submit Review
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setReviewingSession(null);
+                          setRating(0);
+                          setReviewText('');
+                        }}
+                        className="flex-1 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 px-4 py-2 rounded-lg font-medium text-sm"
+                      >
+                        Cancel
+                      </motion.button>
+                    </div>
+                    {!isSubmitEnabled && (
+                      <p className="text-xs text-slate-400 text-center">
+                        Please provide both a rating and feedback to submit your review
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
