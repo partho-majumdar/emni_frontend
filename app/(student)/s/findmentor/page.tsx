@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { apiRequest, ApiRequestType } from "@/app/lib/apiClient";
 import { Star, User, Users, BookOpen, X, GraduationCap, Mail, Search, Sparkles, Crown, Award, MapIcon } from "lucide-react";
+import Link from "next/link";
 
 interface MentorSuggestionType {
   mentorId: string;
@@ -314,22 +315,23 @@ const MentorShowCard: React.FC<{ mentor: MentorSuggestionType }> = ({ mentor }) 
             )}
           </motion.div>
         )}
-
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-500 transition-all duration-300 shadow-md hover:shadow-lg"
-          aria-label={`Contact ${mentor.name}`}
-          onClick={() => toast.info("Contact functionality coming soon!")}
+          className="w-full"
         >
-          <span className="flex items-center justify-center gap-2">
-            <MapIcon className="w-4 h-4" />
-            See Details
-          </span>
-        </motion.button>
+          <Link
+            href={`/s/mprofile/${mentor.mentorId}`}
+            className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-500 transition-all duration-300 shadow-md hover:shadow-lg block text-center"
+            aria-label={`View details for ${mentor.name}`}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <MapIcon className="w-4 h-4" />
+              See Details
+            </span>
+          </Link>
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -765,9 +765,9 @@ const GroupSessionCard = ({
       isValid(GroupSessionDetails.startTime) &&
       GroupSessionDetails.startTime < new Date()
     ) {
-      toast.warning(
-        `Session "${GroupSessionDetails.title}" has already ended.`
-      );
+      // toast.warning(
+        // `Session "${GroupSessionDetails.title}" has already ended.`
+      // );
     }
   }, [GroupSessionDetails.startTime, GroupSessionDetails.title]);
 
