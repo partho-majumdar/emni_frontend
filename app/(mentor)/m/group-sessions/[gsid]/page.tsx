@@ -28,6 +28,21 @@ import { format, subDays, startOfDay, isAfter, isEqual, eachDayOfInterval } from
 import { jakarta } from "@/app/utils/font";
 import { BarChart, LineChart, PieChart } from "@/components/ui/charts";
 
+
+const formatDate = (dateString: string | Date) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "UTC",
+  });
+};
+
+
 const GroupSessionPageIndividual = () => {
   const [gsInfo, setGsInfo] = useState<GroupSessionInfoType | null>(null);
   const [participants, setParticipants] = useState<GroupSessionParticipantInfo[]>([]);
@@ -365,7 +380,7 @@ const GroupSessionPageIndividual = () => {
                               </TableCell>
                               <TableCell className="text-gray-400 py-3">{p.email}</TableCell>
                               <TableCell className="text-gray-400 py-3">
-                                {format(new Date(p.joinedAt), "MMM d, yyyy 'at' HH:mm")}
+                                {formatDate(p.joinedAt)}
                               </TableCell>
                               <TableCell className="py-4">
                                 <span

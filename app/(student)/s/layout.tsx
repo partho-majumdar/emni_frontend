@@ -1,23 +1,7 @@
 "use client";
 import Sidebar from "@/app/ui/Sidebar";
 import React from "react";
-import {
-  Home,
-  Bell,
-  Calendar,
-  CalendarClock,
-  Group,
-  History,
-  Inbox,
-  TrafficCone,
-  UserSearch,
-  Workflow,
-  MessagesSquare,
-  TicketCheck,
-  Star,
-  StarHalf,
-  BotIcon,
-} from "lucide-react";
+import { Home, Bell, Calendar, CalendarClock, Group, History, Inbox, TrafficCone, UserSearch, Workflow, MessagesSquare, TicketCheck, Star, StarHalf, BotIcon, FilePenLine, ClipboardCheckIcon, HandshakeIcon, BriefcaseBusiness, FileSignatureIcon } from "lucide-react";
 
 const SidebarElements = [
   {
@@ -56,9 +40,14 @@ const SidebarElements = [
     url: "/s/joinSession",
   },
   {
-    name: "Jobs",
-    icon: <Workflow className="w-4 h-4" />,
+    name: "Hire On Contract",
+    icon: <HandshakeIcon className="w-4 h-4" />,
     url: "/s/jobs",
+  },
+  {
+    name: "Active Contracts",
+    icon: <FileSignatureIcon className="w-4 h-4" />,
+    url: "/s/activeContracts",
   },
   {
     name: "History",

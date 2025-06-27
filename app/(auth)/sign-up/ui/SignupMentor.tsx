@@ -89,8 +89,9 @@ const SignupMentor = () => {
       const response = await registerMentor(info);
       if (response.mid) {
         localStorage.setItem("mentor-id", response.mid);
+        toast.success("Registration successful! Please Login");
         setLoading(false);
-        router.replace("/m/myprofile");
+        router.replace("/sign-in");
       } else {
         toast.error(response.error || "Registration failed");
         setLoading(false);

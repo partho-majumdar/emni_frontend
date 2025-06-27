@@ -55,18 +55,12 @@ interface RefundApprovalDialogProps {
   onRefundApproved: (updatedTransaction: Transaction, approvedTransaction: Transaction) => void;
 }
 
-const RefundApprovalDialog: React.FC<RefundApprovalDialogProps> = ({ transaction, currentBalance, onRefundApproved }) => {
+const RefundApprovalDialog: React.FC<RefundApprovalDialogProps> = ({ transaction, onRefundApproved }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleApproveRefund = async () => {
     if (!transaction.refund_request_id) {
       toast.error("Invalid refund request ID");
-      return;
-    }
-
-    // Check if mentor has sufficient balance
-    if (currentBalance < transaction.amount_ucoin) {
-      toast.error("Cannot refund: Insufficient balance");
       return;
     }
 
@@ -102,10 +96,7 @@ const RefundApprovalDialog: React.FC<RefundApprovalDialogProps> = ({ transaction
       }
     } catch (err: any) {
       console.error("Refund approval failed:", err);
-      const errorMessage = err.message.includes("Insufficient balance")
-        ? "Cannot refund: Insufficient balance"
-        : err.message || "Failed to approve refund";
-      toast.error(errorMessage);
+      toast.error(err.message || "Failed to approve refund");
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +111,6 @@ const RefundApprovalDialog: React.FC<RefundApprovalDialogProps> = ({ transaction
           className="text-red-400 border-red-500/30 hover:bg-red-500/10 flex items-center gap-2 animate-pulse"
         >
           <AlertCircle className="w-4 h-4 text-red-400" />
-          {/* Approve Refund */}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 text-white">
@@ -514,6 +504,7 @@ const MentorTransactionHistoryPage = () => {
       setStats(calculateStats(updatedTransactions));
       return updatedTransactions;
     });
+    fetchTransactions();
   };
 
   const filteredTransactions = selectedTypeFilter === 'all'
@@ -803,7 +794,7 @@ const MentorTransactionHistoryPage = () => {
                             <TableHead className="text-gray-300 font-semibold py-4 px-4 whitespace-nowrap hidden md:table-cell">Session Details</TableHead>
                             <TableHead className="text-gray-300 font-semibold py-4 px-4 whitespace-nowrap hidden md:table-cell">Student</TableHead>
                             <TableHead className="text-gray-300 font-semibold py-4 px-4 text-center whitespace-nowrap">Receipt</TableHead>
-                            <TableHead className="text-gray-300 font-semibold py-4 px-4 text-center whitespace-nowrap">Action</TableHead>
+                            <TableHead className="text-gray-300 font-semibold py-4 px-4 text-center whitespace-nowrap">Refund</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>

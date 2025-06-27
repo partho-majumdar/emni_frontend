@@ -404,7 +404,7 @@ const Inbox: React.FC = () => {
       </div>
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 relative z-10">
         {/* Conversation List */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
@@ -466,6 +466,76 @@ const Inbox: React.FC = () => {
               )}
             </div>
           </ScrollArea>
+        </motion.div> */}
+  
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full lg:w-1/3 bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/20 shadow-xl h-[calc(100vh-4rem)] lg:h-[calc(100vh-6rem)] flex flex-col"
+        >
+          <h2 className="text-2xl font-bold text-white mb-6">Conversations</h2>
+          
+          {/* Scrollable area with proper height constraints */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full w-full [&>div]:h-full [&>div>div]:!block">
+              <div className="space-y-3 pr-3 h-full">
+                {conversations.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center min-h-[200px]">
+                    <MessageCircle className="w-16 h-16 text-orange-400 mb-4 opacity-50" />
+                    <p className="text-gray-300 text-lg text-center">No conversations yet.</p>
+                  </div>
+                ) : (
+                  conversations.map((conv, index) => (
+                    <motion.div
+                      key={conv.conversation_id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => setSelectedConversation(conv)}
+                      className={`p-4 rounded-xl cursor-pointer flex items-center gap-4 ${
+                        selectedConversation?.conversation_id === conv.conversation_id
+                          ? "bg-orange-500/20 border-orange-500/30"
+                          : "bg-gray-700/50 hover:bg-gray-700/70"
+                      } border border-gray-500/30 transition-all duration-300`}
+                    >
+                      <img
+                        src={conv.mentor.profileImage || getAvatar(conv.mentor.username)}
+                        alt={`${conv.mentor.name}'s avatar`}
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-orange-500/20"
+                        onError={(e) => { 
+                          e.currentTarget.src = getAvatar(conv.mentor.username + "-fallback");
+                          e.currentTarget.onerror = null;
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `http://localhost:5000/s/mprofile/${conv.mentor.mentor_id}`;
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <p className="font-semibold text-white truncate">
+                            {conv.mentor.name} (@{conv.mentor.username})
+                          </p>
+                          {conv.unread_count > 0 && (
+                            <span className="bg-orange-500 text-white text-xs font-semibold rounded-full px-2 py-1 flex-shrink-0">
+                              {conv.unread_count}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-400 truncate">
+                          {conv.last_message_text || "No messages yet"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {conv.last_message_at ? formatDateTime(conv.last_message_at) : ""}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </motion.div>
 
         {/* Chat Area */}

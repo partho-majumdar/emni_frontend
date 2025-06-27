@@ -878,7 +878,7 @@ const StudentTransactionHistoryPage = () => {
                           <TableHead className="text-gray-300 font-semibold py-3 px-4">Session Details</TableHead>
                           <TableHead className="text-gray-300 font-semibold py-3 px-4">Counterpart</TableHead>
                           <TableHead className="text-gray-300 font-semibold py-3 px-4 text-center">Receipt</TableHead>
-                          <TableHead className="text-gray-300 font-semibold py-3 px-4 text-center">Action</TableHead>
+                          <TableHead className="text-gray-300 font-semibold py-3 px-4 text-center">Refund</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

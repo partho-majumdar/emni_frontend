@@ -76,8 +76,8 @@ const SignupStudent = () => {
     try {
       const response = await registerStudent(info);
       if (response.sid) {
-        toast.success("Registration successful!");
-        router.replace("/s/myprofile");
+        toast.success("Registration successful! Please Login");
+        router.replace("/sign-in");
       } else {
         toast.error(response.error || "Registration failed");
       }
